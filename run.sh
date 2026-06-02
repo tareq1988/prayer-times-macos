@@ -70,6 +70,7 @@ if ! xcodebuild \
       CODE_SIGN_IDENTITY="-" \
       CODE_SIGNING_REQUIRED=YES \
       CODE_SIGNING_ALLOWED=YES \
+      ENABLE_HARDENED_RUNTIME=NO \
       build >"$BUILD_LOG" 2>&1; then
   echo "✗ Build failed:"
   grep -E "error:" "$BUILD_LOG" || tail -30 "$BUILD_LOG"

@@ -44,6 +44,7 @@ xcodebuild -project PrayerTimes.xcodeproj -scheme PrayerTimes -configuration Rel
   -destination 'generic/platform=macOS' -derivedDataPath build/dd \
   ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
   CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
+  ENABLE_HARDENED_RUNTIME=NO \
   build >/dev/null
 echo "✓ Built ($(lipo -archs "build/dd/Build/Products/Release/$APP_NAME.app/Contents/MacOS/$APP_NAME"))"
 
