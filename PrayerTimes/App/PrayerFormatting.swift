@@ -1,0 +1,52 @@
+import Foundation
+import PrayerKit
+
+/// Presentation helpers for the app layer. Prayer display names are English-only
+/// for M2; M6 moves all of these into the String Catalog with localized,
+/// locale-aware formatting. The timezone-aware formatters already honor the
+/// master timezone so M3 can wire settings in without reworking the views.
+enum PrayerFormatting {
+
+    /// English display name for a prayer (placeholder until M6 localization).
+    static func name(_ prayer: Prayer) -> String {
+        switch prayer {
+        case .fajr: return "Fajr"
+        case .sunrise: return "Sunrise"
+        case .dhuhr: return "Dhuhr"
+        case .asr: return "Asr"
+        case .maghrib: return "Maghrib"
+        case .isha: return "Isha"
+        }
+    }
+
+    /// Short clock time (e.g. "13:08" / "1:08 PM") in the given timezone.
+    static func clock(_ date: Date, in timeZone: TimeZone) -> String {
+        var fmt = Date.FormatStyle(date: .omitted, time: .shortened)
+        fmt.timeZone = timeZone
+        return date.formatted(fmt)
+    }
+
+    /// Long date (e.g. "Monday, 2 June 2026") in the given timezone.
+    static func longDate(_ date: Date, in timeZone: TimeZone) -> String {
+        var fmt = Date.FormatStyle(date: .complete, time: .omitted)
+        fmt.timeZone = timeZone
+        return date.formatted(fmt)
+    }
+
+    /// Compact countdown for the menu bar label: "1:24:30", "24:30", or "0:42".
+    /// Shows seconds only under a minute so the menu bar isn't visually noisy.
+    static func countdownLabel(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded(.down))
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        if h > 0 { return String(format: "%d:%02d", h, m) }
+        if m > 0 { return String(format: "%d:%02d", m, s) }
+        return String(format: "0:%02d", s)
+    }
+
+    /// Full H:MM:SS countdown for the panel's highlighted next prayer.
+    static func countdownLong(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded(.down))
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        return String(format: "%d:%02d:%02d", h, m, s)
+    }
+}
