@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prayer Times — macOS menu bar app</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 640px; margin: 0 auto; padding: 3rem 1.25rem; color: #1c1c1e;
+    }
+    @media (prefers-color-scheme: dark) { body { background: #1c1c1e; color: #f2f2f7; } }
+    h1 { font-size: 2rem; margin-bottom: .25rem; }
+    .sub { color: #8e8e93; margin-top: 0; }
+    .btn {
+      display: inline-block; margin: 1.25rem 0; padding: .7rem 1.3rem;
+      background: #1c8e8e; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600;
+    }
+    code { background: rgba(128,128,128,.18); padding: .15em .4em; border-radius: 5px; font-size: .9em; }
+    ul { padding-left: 1.2rem; }
+    a { color: #1c8e8e; }
+  </style>
+</head>
+<body>
+  <h1>🕌 Prayer Times</h1>
+  <p class="sub">A native, free macOS menu bar app for Islamic prayer times.</p>
+
+  <a class="btn" href="https://github.com/tareq1988/prayer-times-macos/releases/latest">Download latest release</a>
+
+  <h2>Install via Homebrew</h2>
+  <pre><code>brew install --cask tareq1988/tap/prayer-times</code></pre>
+  <p>The current build is ad-hoc signed (not yet notarized). If macOS blocks it, add
+  <code>--no-quarantine</code>, or run
+  <code>xattr -dr com.apple.quarantine "/Applications/Prayer Times.app"</code>.</p>
+
+  <h2>Features</h2>
+  <ul>
+    <li>Next prayer + live countdown in the menu bar (7 label styles)</li>
+    <li>Today's six times, iqamah, Liquid Glass panel (macOS Tahoe)</li>
+    <li>8 calculation methods (Diyanet validated to ±1 min) + madhab + high-latitude rules</li>
+    <li>Per-prayer notifications, early reminders, and full Adhan playback</li>
+    <li>Location auto-detect; localized in English, العربية, Türkçe, বাংলা</li>
+    <li>Auto-updates via Sparkle</li>
+  </ul>
+
+  <p>Requirements: macOS 14 Sonoma or later · Universal (Apple silicon + Intel)</p>
+  <p><a href="https://github.com/tareq1988/prayer-times-macos">Source on GitHub</a> · MIT licensed</p>
+</body>
+</html>
