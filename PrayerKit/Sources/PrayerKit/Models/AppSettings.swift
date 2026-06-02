@@ -1,10 +1,40 @@
 import Foundation
 
-/// Menu bar label content (§7.1).
+/// Menu bar label content (§7.1). Raw values are stable for persistence.
 public enum MenuBarStyle: String, Codable, Sendable, CaseIterable, Hashable {
-    case nextPrayerCountdown   // "Asr 1:24"  (default)
-    case nextPrayerClock       // "Asr 16:42"
-    case iconOnly
+    case iconOnly                       // 🌙
+    case countdownOnly                  // "1:24"
+    case iconCountdown                  // 🌙 1:24
+    case nextPrayerCountdown            // "Asr 1:24"  (default)
+    case iconNameCountdown              // 🌙 Asr 1:24
+    case nextPrayerClock                // "Asr 16:42"
+    case iconNameClock                  // 🌙 Asr 16:42
+
+    /// Whether the label shows the (contextual) prayer icon.
+    public var showsIcon: Bool {
+        switch self {
+        case .iconOnly, .iconCountdown, .iconNameCountdown, .iconNameClock: return true
+        default: return false
+        }
+    }
+
+    /// Whether the label shows the prayer name.
+    public var showsName: Bool {
+        switch self {
+        case .nextPrayerCountdown, .iconNameCountdown, .nextPrayerClock, .iconNameClock: return true
+        default: return false
+        }
+    }
+
+    /// What the trailing value (if any) represents.
+    public enum Value { case none, countdown, clock }
+    public var value: Value {
+        switch self {
+        case .iconOnly: return .none
+        case .nextPrayerClock, .iconNameClock: return .clock
+        default: return .countdown
+        }
+    }
 }
 
 /// How the observer location is determined (§7.6).

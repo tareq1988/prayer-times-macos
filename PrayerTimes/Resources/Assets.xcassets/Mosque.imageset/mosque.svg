@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 100 100" fill="#000">
+  <!-- crescent finial (outer circle minus an offset inner circle) -->
+  <path fill-rule="evenodd"
+        d="M42 11 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0
+           M47 6.5 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0"/>
+  <!-- neck -->
+  <rect x="46.5" y="18" width="7" height="9"/>
+  <!-- onion dome -->
+  <path d="M50 23
+           C 56 31, 80 45, 80 57
+           C 80 69, 66 75, 50 75
+           C 34 75, 20 69, 20 57
+           C 20 45, 44 31, 50 23 Z"/>
+  <!-- base bar -->
+  <rect x="16" y="80" width="68" height="13" rx="5"/>
+</svg>

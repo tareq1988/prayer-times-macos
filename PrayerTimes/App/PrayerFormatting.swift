@@ -75,9 +75,13 @@ enum PrayerFormatting {
 
     static func menuBarStyleName(_ style: MenuBarStyle) -> String {
         switch style {
-        case .nextPrayerCountdown: return "Next prayer + countdown"
-        case .nextPrayerClock: return "Next prayer + clock time"
         case .iconOnly: return "Icon only"
+        case .countdownOnly: return "Countdown only"
+        case .iconCountdown: return "Icon + countdown"
+        case .nextPrayerCountdown: return "Name + countdown"
+        case .iconNameCountdown: return "Icon + name + countdown"
+        case .nextPrayerClock: return "Name + time"
+        case .iconNameClock: return "Icon + name + time"
         }
     }
 
