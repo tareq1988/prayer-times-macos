@@ -13,6 +13,9 @@ struct MenuBarPanel: View {
         VStack(alignment: .leading, spacing: 12) {
             hero.padding(.horizontal, 8)
             timesList
+            if clock.isAdhanPlaying {
+                stopAdhanBar
+            }
             Divider().opacity(0.5)
             summary.padding(.horizontal, 8)
             Divider().opacity(0.5)
@@ -70,6 +73,7 @@ struct MenuBarPanel: View {
     private func row(for prayer: Prayer, time: Date) -> some View {
         let isNext = clock.nextEvent.map { $0.prayer == prayer && $0.time == time } ?? false
         let isPast = !isNext && time < clock.now
+        let iqamah = clock.iqamahTime(for: prayer, prayerTime: time)
 
         return HStack(spacing: 10) {
             Image(systemName: PrayerFormatting.icon(prayer))
@@ -79,6 +83,13 @@ struct MenuBarPanel: View {
 
             Text(PrayerFormatting.name(prayer))
                 .fontWeight(isNext ? .semibold : .regular)
+
+            if let iqamah {
+                Text("· Iqamah \(PrayerFormatting.clock(iqamah, in: clock.timeZone))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
 
             Spacer()
 
@@ -103,6 +114,22 @@ struct MenuBarPanel: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isNext ? Color.accentColor.opacity(0.14) : .clear)
+        )
+    }
+
+    // MARK: Stop Adhan
+
+    private var stopAdhanBar: some View {
+        Button { clock.stopAdhan() } label: {
+            Label("Stop Adhan", systemImage: "stop.circle.fill")
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 7)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.accentColor)
+        .background(
+            RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.14))
         )
     }
 

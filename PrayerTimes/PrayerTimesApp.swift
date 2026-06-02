@@ -12,9 +12,11 @@ struct PrayerTimesApp: App {
 
     init() {
         let settings = SettingsStore()
+        let audio = AudioService()
+        let notifications = NotificationService(audio: audio)
         _settings = State(initialValue: settings)
-        _clock = State(initialValue: PrayerClock(settings: settings))
-        settingsWindow = SettingsWindowManager(settings: settings)
+        _clock = State(initialValue: PrayerClock(settings: settings, notifications: notifications, audio: audio))
+        settingsWindow = SettingsWindowManager(settings: settings, audio: audio)
     }
 
     var body: some Scene {

@@ -25,6 +25,8 @@ targets:
     platform: macOS
     sources:
       - path: PrayerTimes
+        excludes:
+          - "**/README.md"
     dependencies:
       - package: PrayerKit
     settings:

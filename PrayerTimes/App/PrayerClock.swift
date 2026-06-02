@@ -13,6 +13,8 @@ import PrayerKit
 final class PrayerClock {
 
     private let settings: SettingsStore
+    private let notifications: NotificationService
+    private let audio: AudioService
 
     // MARK: Live state
     private(set) var today: PrayerTimes
@@ -23,19 +25,27 @@ final class PrayerClock {
     /// civil day, so `tick()` can detect both setting changes and rollover.
     private var lastInputs: ResolvedInputs
     private var lastDay: Date
+    /// Previous tick instant, used to detect when a prayer time was just crossed.
+    private var previousNow: Date
 
     private var tickTask: Task<Void, Never>?
 
-    init(settings: SettingsStore) {
+    init(settings: SettingsStore, notifications: NotificationService, audio: AudioService) {
         self.settings = settings
+        self.notifications = notifications
+        self.audio = audio
         let start = Date()
         now = start
+        previousNow = start
         let inputs = settings.resolvedInputs
         lastInputs = inputs
         let tz = TimeZone(identifier: inputs.timeZoneID) ?? .current
         lastDay = Self.civilDay(of: start, in: tz)
         today = Self.compute(inputs: inputs, dayOffset: 0, from: start)
         tomorrow = Self.compute(inputs: inputs, dayOffset: 1, from: start)
+
+        Task { await notifications.requestAuthorization() }
+        scheduleNotifications()
         startTicking()
     }
 
@@ -59,6 +69,20 @@ final class PrayerClock {
     /// Today's six times in chronological order.
     var orderedToday: [(prayer: Prayer, time: Date)] { today.ordered }
 
+    /// Whether the full Adhan is currently playing (drives the Stop control).
+    var isAdhanPlaying: Bool { audio.isPlaying }
+
+    /// Stop in-process Adhan playback.
+    func stopAdhan() { audio.stop() }
+
+    /// Iqamah instant for a prayer, if an offset is configured (obligatory only).
+    func iqamahTime(for prayer: Prayer, prayerTime: Date) -> Date? {
+        guard prayer.isObligatory else { return nil }
+        let offset = settings.settings.notifications[prayer]?.iqamahOffsetMinutes ?? 0
+        guard offset > 0 else { return nil }
+        return prayerTime.addingTimeInterval(Double(offset) * 60)
+    }
+
     // MARK: Ticking, rollover & settings changes
 
     private func startTicking() {
@@ -81,6 +105,30 @@ final class PrayerClock {
             lastDay = day
             today = Self.compute(inputs: inputs, dayOffset: 0, from: now)
             tomorrow = Self.compute(inputs: inputs, dayOffset: 1, from: now)
+            scheduleNotifications()
+        }
+        fireAdhanIfCrossed(from: previousNow, to: now)
+        previousNow = now
+    }
+
+    /// Reschedule the rolling notification window from current settings/times.
+    private func scheduleNotifications() {
+        notifications.reschedule(
+            today: today, tomorrow: tomorrow,
+            settings: settings.settings, timeZone: timeZone, now: now
+        )
+    }
+
+    /// Play the full Adhan in-process for any prayer whose instant falls in
+    /// `(start, end]` and has full-Adhan playback enabled (spec §9). Reliable
+    /// because the agent is always running.
+    private func fireAdhanIfCrossed(from start: Date, to end: Date) {
+        guard settings.settings.masterNotificationsEnabled else { return }
+        for (prayer, time) in today.times where time > start && time <= end {
+            let cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+            if cfg.prayerNotificationEnabled, cfg.playFullAdhan {
+                audio.playFullAdhan(cfg.prayerSound)
+            }
         }
     }
 

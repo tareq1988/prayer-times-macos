@@ -7,6 +7,7 @@ import PrayerKit
 /// sound previews, and Stop-Adhan control.
 struct NotificationsTab: View {
     @Bindable var settings: SettingsStore
+    let audio: AudioService
 
     var body: some View {
         Form {
@@ -19,7 +20,7 @@ struct NotificationsTab: View {
 
             ForEach(Prayer.allCases, id: \.self) { prayer in
                 Section(PrayerFormatting.name(prayer)) {
-                    PrayerNotificationRow(prayer: prayer, config: config(for: prayer))
+                    PrayerNotificationRow(prayer: prayer, config: config(for: prayer), audio: audio)
                 }
                 .disabled(!settings.settings.masterNotificationsEnabled)
             }
@@ -39,6 +40,7 @@ struct NotificationsTab: View {
 private struct PrayerNotificationRow: View {
     let prayer: Prayer
     @Binding var config: PrayerNotificationConfig
+    let audio: AudioService
 
     var body: some View {
         // Prayer-entry notification.
@@ -75,10 +77,20 @@ private struct PrayerNotificationRow: View {
     }
 
     private func soundPicker(_ title: String, selection: Binding<NotificationSound>) -> some View {
-        Picker(title, selection: selection) {
-            ForEach(NotificationSound.allCases, id: \.self) { sound in
-                Text(PrayerFormatting.soundName(sound)).tag(sound)
+        HStack {
+            Picker(title, selection: selection) {
+                ForEach(NotificationSound.allCases, id: \.self) { sound in
+                    Text(PrayerFormatting.soundName(sound)).tag(sound)
+                }
             }
+            Button {
+                audio.preview(selection.wrappedValue)
+            } label: {
+                Image(systemName: "play.circle")
+            }
+            .buttonStyle(.borderless)
+            .help("Preview sound")
+            .disabled(selection.wrappedValue == .none || selection.wrappedValue == .systemDefault)
         }
     }
 }
