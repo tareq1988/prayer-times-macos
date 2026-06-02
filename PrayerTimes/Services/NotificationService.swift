@@ -52,13 +52,14 @@ final class NotificationService: NSObject {
 
                 // Prayer-entry notification.
                 if cfg.prayerNotificationEnabled {
-                    let sound = soundForEntry(cfg)
+                    let name = PrayerFormatting.name(prayer)
+                    let clock = PrayerFormatting.clock(time, in: timeZone)
                     requests.append(contentsOf: request(
                         id: "PRAYER-\(dayKey)-\(prayer.rawValue)",
                         fireAt: time, now: now,
-                        title: PrayerFormatting.name(prayer),
-                        body: "It's time for \(PrayerFormatting.name(prayer)) (\(PrayerFormatting.clock(time, in: timeZone))).",
-                        sound: sound,
+                        title: name,
+                        body: String(localized: "It's time for \(name) (\(clock))."),
+                        sound: soundForEntry(cfg),
                         categoryID: cfg.playFullAdhan ? Self.adhanCategoryID : nil
                     ))
                 }
@@ -66,11 +67,13 @@ final class NotificationService: NSObject {
                 // Early reminder.
                 if cfg.earlyReminderEnabled {
                     let early = time.addingTimeInterval(Double(-cfg.earlyLeadMinutes) * 60)
+                    let name = PrayerFormatting.name(prayer)
+                    let clock = PrayerFormatting.clock(time, in: timeZone)
                     requests.append(contentsOf: request(
                         id: "EARLY-\(dayKey)-\(prayer.rawValue)",
                         fireAt: early, now: now,
-                        title: "\(PrayerFormatting.name(prayer)) in \(cfg.earlyLeadMinutes) min",
-                        body: "\(PrayerFormatting.name(prayer)) is at \(PrayerFormatting.clock(time, in: timeZone)).",
+                        title: String(localized: "\(name) in \(cfg.earlyLeadMinutes) min"),
+                        body: String(localized: "\(name) is at \(clock)."),
                         sound: notificationSound(cfg.earlySound),
                         categoryID: nil
                     ))
@@ -79,11 +82,13 @@ final class NotificationService: NSObject {
                 // Iqamah notification (obligatory prayers only).
                 if prayer.isObligatory, cfg.iqamahOffsetMinutes > 0, cfg.iqamahNotificationEnabled {
                     let iqamah = time.addingTimeInterval(Double(cfg.iqamahOffsetMinutes) * 60)
+                    let name = PrayerFormatting.name(prayer)
+                    let clock = PrayerFormatting.clock(iqamah, in: timeZone)
                     requests.append(contentsOf: request(
                         id: "IQAMAH-\(dayKey)-\(prayer.rawValue)",
                         fireAt: iqamah, now: now,
-                        title: "Iqamah — \(PrayerFormatting.name(prayer))",
-                        body: "Congregation at \(PrayerFormatting.clock(iqamah, in: timeZone)).",
+                        title: String(localized: "Iqamah — \(name)"),
+                        body: String(localized: "Congregation at \(clock)."),
                         sound: notificationSound(cfg.iqamahSound),
                         categoryID: nil
                     ))

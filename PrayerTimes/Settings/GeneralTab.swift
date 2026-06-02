@@ -29,12 +29,12 @@ struct GeneralTab: View {
             Section("Language") {
                 Picker("Language", selection: languageBinding) {
                     Text("Follow system").tag(String?.none)
-                    Text("English").tag(String?.some("en"))
-                    Text("العربية").tag(String?.some("ar"))
-                    Text("Türkçe").tag(String?.some("tr"))
-                    Text("বাংলা").tag(String?.some("bn"))
+                    Text(verbatim: "English").tag(String?.some("en"))
+                    Text(verbatim: "العربية").tag(String?.some("ar"))
+                    Text(verbatim: "Türkçe").tag(String?.some("tr"))
+                    Text(verbatim: "বাংলা").tag(String?.some("bn"))
                 }
-                Text("Full localization arrives in a later build.")
+                Text("Changing the language relaunches the app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -61,7 +61,7 @@ struct GeneralTab: View {
                     settings.settings.launchAtLogin = enabled
                     loginError = nil
                 } catch {
-                    loginError = "Couldn't update login item: \(error.localizedDescription)"
+                    loginError = String(localized: "Couldn't update login item: \(error.localizedDescription)")
                 }
             }
         )
@@ -70,7 +70,10 @@ struct GeneralTab: View {
     private var languageBinding: Binding<String?> {
         Binding(
             get: { settings.settings.languageOverride },
-            set: { settings.settings.languageOverride = $0 }
+            set: { code in
+                guard code != settings.settings.languageOverride else { return }
+                settings.applyLanguageOverride(code)   // persists + relaunches
+            }
         )
     }
 }

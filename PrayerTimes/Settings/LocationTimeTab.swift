@@ -43,15 +43,15 @@ struct LocationTimeTab: View {
 
                 LabeledContent("Latitude") {
                     TextField("Latitude", value: latBinding, format: .number.precision(.fractionLength(0...6)))
-                        .frame(width: 120).multilineTextAlignment(.trailing)
+                        .labelsHidden().frame(width: 120).multilineTextAlignment(.trailing)
                 }
                 LabeledContent("Longitude") {
                     TextField("Longitude", value: lonBinding, format: .number.precision(.fractionLength(0...6)))
-                        .frame(width: 120).multilineTextAlignment(.trailing)
+                        .labelsHidden().frame(width: 120).multilineTextAlignment(.trailing)
                 }
                 LabeledContent("Elevation (m)") {
                     TextField("Elevation", value: elevationBinding, format: .number.precision(.fractionLength(0...1)))
-                        .frame(width: 120).multilineTextAlignment(.trailing)
+                        .labelsHidden().frame(width: 120).multilineTextAlignment(.trailing)
                 }
             }
 

@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import Observation
 import PrayerKit
 
@@ -55,18 +56,22 @@ final class SettingsStore {
     /// "Auto: Diyanet İşleri (Türkiye)". nil when auto-detect is off.
     var autoMethodLabel: String? {
         guard settings.autoDetectMethod else { return nil }
-        guard let code = detectedCountryCode else { return "Auto-detect on — locating…" }
+        guard let code = detectedCountryCode else { return String(localized: "Auto-detect on — locating…") }
         let country = Locale.current.localizedString(forRegionCode: code) ?? code
-        return "Auto: \(resolvedMethodName) (\(country))"
+        return String(localized: "Auto: \(resolvedMethodName) (\(country))")
     }
 
     // MARK: Auto-detect (CoreLocation)
 
-    /// Run a one-shot detection if the user is in automatic location mode.
+    /// On launch, refresh the location only if the user opted into automatic
+    /// behavior *and* permission was already granted — never prompt at startup.
+    /// (The prompt appears only when the user explicitly enables Automatic /
+    /// auto-detect or taps "Detect my location".)
     func detectLocationIfNeeded() async {
-        if settings.locationMode == .automatic || settings.autoDetectMethod {
-            await detectLocation()
-        }
+        let wantsAuto = settings.locationMode == .automatic || settings.autoDetectMethod
+        let authorized = location.authorization == .authorized || location.authorization == .authorizedAlways
+        guard wantsAuto, authorized else { return }
+        await detectLocation()
     }
 
     /// Detect location once and (if auto-detect-method is on) pick the method
@@ -128,6 +133,31 @@ final class SettingsStore {
         )
     }
 
+    // MARK: Language override (§7.9)
+
+    /// Set the UI language and relaunch. Writing `AppleLanguages` makes the
+    /// String Catalog, `String(localized:)`, locale-aware formatting, and RTL all
+    /// switch consistently on the next launch — which is why a relaunch is needed
+    /// (the string table can't be swapped reliably mid-run).
+    func applyLanguageOverride(_ code: String?) {
+        settings.languageOverride = code
+        if let code {
+            defaults.set([code], forKey: "AppleLanguages")
+        } else {
+            defaults.removeObject(forKey: "AppleLanguages")
+        }
+        relaunch()
+    }
+
+    private func relaunch() {
+        let url = Bundle.main.bundleURL
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: url, configuration: config) { _, _ in
+            Task { @MainActor in NSApp.terminate(nil) }
+        }
+    }
+
     // MARK: Persistence
 
     private func persist() {
@@ -149,6 +179,7 @@ final class SettingsStore {
     static var firstRunDefaults: AppSettings {
         AppSettings(
             methodID: "diyanet",
+            locationMode: .manual,
             manualCoordinates: defaultCoordinates,
             timeZoneMode: .explicit(identifier: "Europe/Istanbul")
         )

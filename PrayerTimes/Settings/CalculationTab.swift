@@ -116,23 +116,27 @@ struct ManualMethodEditor: View {
 
         Section("Per-prayer offsets (minutes)") {
             ForEach(Prayer.obligatory, id: \.self) { prayer in
-                stepperRow(PrayerFormatting.name(prayer), value: offsetBinding(for: prayer), range: -60...60)
+                stepperRow("\(PrayerFormatting.name(prayer))", value: offsetBinding(for: prayer), range: -60...60)
             }
         }
     }
 
     // MARK: Rows
 
-    private func angleRow(_ title: String, value: Binding<Double>, range: ClosedRange<Double> = 0...30) -> some View {
+    private func angleRow(_ title: LocalizedStringKey, value: Binding<Double>, range: ClosedRange<Double> = 0...30) -> some View {
         LabeledContent(title) {
             TextField(title, value: value, format: .number.precision(.fractionLength(0...2)))
-                .frame(width: 80).multilineTextAlignment(.trailing)
+                .labelsHidden().frame(width: 80).multilineTextAlignment(.trailing)
         }
     }
 
-    private func stepperRow(_ title: String, value: Binding<Int>, range: ClosedRange<Int>) -> some View {
+    private func stepperRow(_ title: LocalizedStringKey, value: Binding<Int>, range: ClosedRange<Int>) -> some View {
         Stepper(value: value, in: range) {
-            LabeledContent(title, value: "\(value.wrappedValue)")
+            HStack {
+                Text(title)
+                Spacer(minLength: 12)
+                Text("\(value.wrappedValue)").monospacedDigit().foregroundStyle(.secondary)
+            }
         }
     }
 

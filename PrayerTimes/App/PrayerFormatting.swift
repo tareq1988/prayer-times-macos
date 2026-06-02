@@ -7,15 +7,15 @@ import PrayerKit
 /// master timezone so M3 can wire settings in without reworking the views.
 enum PrayerFormatting {
 
-    /// English display name for a prayer (placeholder until M6 localization).
+    /// Localized display name for a prayer.
     static func name(_ prayer: Prayer) -> String {
         switch prayer {
-        case .fajr: return "Fajr"
-        case .sunrise: return "Sunrise"
-        case .dhuhr: return "Dhuhr"
-        case .asr: return "Asr"
-        case .maghrib: return "Maghrib"
-        case .isha: return "Isha"
+        case .fajr: return String(localized: "Fajr")
+        case .sunrise: return String(localized: "Sunrise")
+        case .dhuhr: return String(localized: "Dhuhr")
+        case .asr: return String(localized: "Asr")
+        case .maghrib: return String(localized: "Maghrib")
+        case .isha: return String(localized: "Isha")
         }
     }
 
@@ -75,33 +75,33 @@ enum PrayerFormatting {
 
     static func menuBarStyleName(_ style: MenuBarStyle) -> String {
         switch style {
-        case .iconOnly: return "Icon only"
-        case .countdownOnly: return "Countdown only"
-        case .iconCountdown: return "Icon + countdown"
-        case .nextPrayerCountdown: return "Name + countdown"
-        case .iconNameCountdown: return "Icon + name + countdown"
-        case .nextPrayerClock: return "Name + time"
-        case .iconNameClock: return "Icon + name + time"
+        case .iconOnly: return String(localized: "Icon only")
+        case .countdownOnly: return String(localized: "Countdown only")
+        case .iconCountdown: return String(localized: "Icon + countdown")
+        case .nextPrayerCountdown: return String(localized: "Name + countdown")
+        case .iconNameCountdown: return String(localized: "Icon + name + countdown")
+        case .nextPrayerClock: return String(localized: "Name + time")
+        case .iconNameClock: return String(localized: "Icon + name + time")
         }
     }
 
     static func highLatitudeRuleName(_ rule: HighLatitudeRule) -> String {
         switch rule {
-        case .none: return "None"
-        case .middleOfNight: return "Middle of the night"
-        case .seventhOfNight: return "One-seventh of the night"
-        case .angleBased: return "Angle-based"
+        case .none: return String(localized: "None")
+        case .middleOfNight: return String(localized: "Middle of the night")
+        case .seventhOfNight: return String(localized: "One-seventh of the night")
+        case .angleBased: return String(localized: "Angle-based")
         }
     }
 
     static func soundName(_ sound: NotificationSound) -> String {
         switch sound {
-        case .none: return "None"
-        case .systemDefault: return "Default"
-        case .softChime: return "Soft chime"
-        case .takbir: return "Takbir"
-        case .adhanMakkah: return "Adhan (Makkah)"
-        case .adhanMadinah: return "Adhan (Madinah)"
+        case .none: return String(localized: "None")
+        case .systemDefault: return String(localized: "Default")
+        case .softChime: return String(localized: "Soft chime")
+        case .takbir: return String(localized: "Takbir")
+        case .adhanMakkah: return String(localized: "Adhan (Makkah)")
+        case .adhanMadinah: return String(localized: "Adhan (Madinah)")
         }
     }
 }

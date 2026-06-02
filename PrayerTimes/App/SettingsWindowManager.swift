@@ -33,10 +33,10 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
 
         var title: String {
             switch self {
-            case .general: return "General"
-            case .location: return "Location & Time"
-            case .calculation: return "Calculation"
-            case .notifications: return "Notifications"
+            case .general: return String(localized: "General")
+            case .location: return String(localized: "Location & Time")
+            case .calculation: return String(localized: "Calculation")
+            case .notifications: return String(localized: "Notifications")
             }
         }
         var symbol: String {

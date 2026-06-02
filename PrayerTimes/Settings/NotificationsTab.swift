@@ -13,9 +13,6 @@ struct NotificationsTab: View {
         Form {
             Section {
                 Toggle("Enable notifications", isOn: $settings.settings.masterNotificationsEnabled)
-                Text("Scheduling and Adhan playback are wired up in a later build.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             ForEach(Prayer.allCases, id: \.self) { prayer in
@@ -56,7 +53,11 @@ private struct PrayerNotificationRow: View {
         Toggle("Early reminder", isOn: $config.earlyReminderEnabled)
         if config.earlyReminderEnabled {
             Stepper(value: $config.earlyLeadMinutes, in: 1...60) {
-                LabeledContent("Lead time", value: "\(config.earlyLeadMinutes) min")
+                HStack {
+                    Text("Lead time")
+                    Spacer(minLength: 12)
+                    Text("\(config.earlyLeadMinutes) min").monospacedDigit().foregroundStyle(.secondary)
+                }
             }
             soundPicker("Reminder sound", selection: $config.earlySound)
         }
@@ -64,8 +65,12 @@ private struct PrayerNotificationRow: View {
         // Iqamah (obligatory prayers only — not Sunrise).
         if prayer.isObligatory {
             Stepper(value: $config.iqamahOffsetMinutes, in: 0...60) {
-                LabeledContent("Iqamah offset",
-                    value: config.iqamahOffsetMinutes == 0 ? "Off" : "+\(config.iqamahOffsetMinutes) min")
+                HStack {
+                    Text("Iqamah offset")
+                    Spacer(minLength: 12)
+                    Text(config.iqamahOffsetMinutes == 0 ? String(localized: "Off") : "+\(config.iqamahOffsetMinutes) min")
+                        .monospacedDigit().foregroundStyle(.secondary)
+                }
             }
             if config.iqamahOffsetMinutes > 0 {
                 Toggle("Iqamah notification", isOn: $config.iqamahNotificationEnabled)
@@ -76,7 +81,7 @@ private struct PrayerNotificationRow: View {
         }
     }
 
-    private func soundPicker(_ title: String, selection: Binding<NotificationSound>) -> some View {
+    private func soundPicker(_ title: LocalizedStringKey, selection: Binding<NotificationSound>) -> some View {
         HStack {
             Picker(title, selection: selection) {
                 ForEach(NotificationSound.allCases, id: \.self) { sound in

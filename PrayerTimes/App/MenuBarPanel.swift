@@ -178,7 +178,7 @@ struct MenuBarPanel: View {
     }
 
     /// Full-width, left-aligned label so each footer item reads as its own menu row.
-    private func footerLabel(_ title: String, systemImage: String) -> some View {
+    private func footerLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 5)
