@@ -11,12 +11,16 @@ struct PrayerTimesApp: App {
     private let settingsWindow: SettingsWindowManager
 
     init() {
-        let settings = SettingsStore()
+        let location = LocationService()
+        let settings = SettingsStore(location: location)
         let audio = AudioService()
         let notifications = NotificationService(audio: audio)
         _settings = State(initialValue: settings)
         _clock = State(initialValue: PrayerClock(settings: settings, notifications: notifications, audio: audio))
         settingsWindow = SettingsWindowManager(settings: settings, audio: audio)
+
+        // Auto-detect on launch when the user is in automatic mode (spec §7.7).
+        Task { await settings.detectLocationIfNeeded() }
     }
 
     var body: some Scene {

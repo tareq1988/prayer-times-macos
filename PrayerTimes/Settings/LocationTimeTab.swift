@@ -15,16 +15,30 @@ struct LocationTimeTab: View {
     var body: some View {
         Form {
             Section("Location") {
-                Picker("Mode", selection: $settings.settings.locationMode) {
+                Picker("Mode", selection: locationModeBinding) {
                     Text("Automatic").tag(LocationMode.automatic)
                     Text("Manual").tag(LocationMode.manual)
                 }
                 .pickerStyle(.segmented)
 
                 if settings.settings.locationMode == .automatic {
-                    Text("Automatic detection arrives in a later build; the manual coordinates below are used meanwhile.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack {
+                        Button {
+                            Task { await settings.detectLocation() }
+                        } label: {
+                            Label("Detect my location", systemImage: "location.fill")
+                        }
+                        .disabled(settings.isDetectingLocation)
+                        if settings.isDetectingLocation {
+                            ProgressView().controlSize(.small)
+                        }
+                    }
+                    if let error = settings.locationError {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    } else if settings.detectedCoordinates == nil {
+                        Text("Falls back to the manual coordinates below until detected.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
 
                 LabeledContent("Latitude") {
@@ -62,6 +76,18 @@ struct LocationTimeTab: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    // MARK: Bindings
+
+    private var locationModeBinding: Binding<LocationMode> {
+        Binding(
+            get: { settings.settings.locationMode },
+            set: { mode in
+                settings.settings.locationMode = mode
+                if mode == .automatic { Task { await settings.detectLocation() } }
+            }
+        )
     }
 
     // MARK: Coordinate bindings

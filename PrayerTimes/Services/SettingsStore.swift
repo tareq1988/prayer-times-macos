@@ -20,11 +20,19 @@ final class SettingsStore {
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let key = "appSettings.v1"
+    @ObservationIgnored private let location: LocationService
+
+    // Runtime auto-detect state (not persisted).
+    private(set) var detectedCoordinates: Coordinates?
+    private(set) var detectedCountryCode: String?
+    private(set) var isDetectingLocation = false
+    private(set) var locationError: String?
 
     /// App Group suite to adopt in M9 for widget sharing. nil → standard defaults.
     static let appGroupSuite: String? = nil   // "group.com.wedevs.prayertimes"
 
-    init(defaults: UserDefaults? = nil) {
+    init(location: LocationService, defaults: UserDefaults? = nil) {
+        self.location = location
         let resolved = defaults
             ?? Self.appGroupSuite.flatMap { UserDefaults(suiteName: $0) }
             ?? .standard
@@ -34,10 +42,54 @@ final class SettingsStore {
 
     // MARK: Resolved inputs (consumed by PrayerClock / NotificationService)
 
-    /// The coordinates to calculate for. Automatic mode falls back to the manual
-    /// coordinates until CoreLocation lands in M5.
+    /// The coordinates to calculate for. Automatic mode uses the detected
+    /// location when available, falling back to the manual coordinates.
     var resolvedCoordinates: Coordinates {
-        settings.manualCoordinates ?? Self.defaultCoordinates
+        if settings.locationMode == .automatic, let detected = detectedCoordinates {
+            return detected
+        }
+        return settings.manualCoordinates ?? Self.defaultCoordinates
+    }
+
+    /// Transparent label for the auto-detected method (spec §7.7), e.g.
+    /// "Auto: Diyanet İşleri (Türkiye)". nil when auto-detect is off.
+    var autoMethodLabel: String? {
+        guard settings.autoDetectMethod else { return nil }
+        guard let code = detectedCountryCode else { return "Auto-detect on — locating…" }
+        let country = Locale.current.localizedString(forRegionCode: code) ?? code
+        return "Auto: \(resolvedMethodName) (\(country))"
+    }
+
+    // MARK: Auto-detect (CoreLocation)
+
+    /// Run a one-shot detection if the user is in automatic location mode.
+    func detectLocationIfNeeded() async {
+        if settings.locationMode == .automatic || settings.autoDetectMethod {
+            await detectLocation()
+        }
+    }
+
+    /// Detect location once and (if auto-detect-method is on) pick the method
+    /// from the resolved country (spec §7.7).
+    func detectLocation() async {
+        isDetectingLocation = true
+        locationError = nil
+        defer { isDetectingLocation = false }
+        do {
+            let loc = try await location.fetchCurrent()
+            detectedCoordinates = Coordinates(
+                latitude: loc.coordinate.latitude,
+                longitude: loc.coordinate.longitude,
+                elevation: loc.altitude
+            )
+            let code = await location.countryCode(for: loc)
+            detectedCountryCode = code
+            if settings.autoDetectMethod, let code {
+                settings.methodID = MethodRegistry.methodID(forCountryCode: code)
+            }
+        } catch {
+            locationError = error.localizedDescription
+        }
     }
 
     /// The master timezone (system or explicit).

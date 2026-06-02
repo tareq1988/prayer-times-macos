@@ -32,10 +32,13 @@ struct CalculationTab: View {
             }
 
             Section {
-                Toggle("Auto-detect method from location", isOn: $settings.settings.autoDetectMethod)
-                Text("Detection by country arrives in a later build (off by default).")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Toggle("Auto-detect method from location", isOn: autoDetectBinding)
+                if let label = settings.autoMethodLabel {
+                    Text(label).font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Text("Resolves your country to a method; you can still override it below.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
 
             if settings.settings.methodID == Self.manualID {
@@ -47,15 +50,29 @@ struct CalculationTab: View {
 
     // MARK: Bindings
 
-    /// Switching to "Manual" seeds editable parameters if none exist yet.
+    /// User-driven method selection. Seeds manual parameters when switching to
+    /// "Manual", and overrides auto-detect (spec §7.7: a manual choice disables
+    /// auto until re-enabled).
     private var methodBinding: Binding<String> {
         Binding(
             get: { settings.settings.methodID },
             set: { newID in
+                settings.settings.autoDetectMethod = false
                 settings.settings.methodID = newID
                 if newID == Self.manualID, settings.settings.manualParameters == nil {
                     settings.settings.manualParameters = Self.defaultManualParameters
                 }
+            }
+        )
+    }
+
+    /// Enabling auto-detect kicks off a one-shot detection.
+    private var autoDetectBinding: Binding<Bool> {
+        Binding(
+            get: { settings.settings.autoDetectMethod },
+            set: { enabled in
+                settings.settings.autoDetectMethod = enabled
+                if enabled { Task { await settings.detectLocation() } }
             }
         )
     }
