@@ -4,11 +4,11 @@
         <title>Prayer Times</title>
         <item>
             <title>0.1.0</title>
-            <pubDate>Tue, 02 Jun 2026 12:17:29 +0300</pubDate>
+            <pubDate>Tue, 02 Jun 2026 12:30:41 +0300</pubDate>
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/tareq1988/prayer-times-macos/releases/download/v0.1.0/PrayerTimes-0.1.0.zip" length="9560791" type="application/octet-stream" sparkle:edSignature="pixiEcUZ23jB+zRiUOFiw3ijy99uV8g90C+sr42eSMmrSHnd8I7uzIqEb0g7ZvA1KVnESRAx2cqImXgXDoKgBA=="/>
+            <enclosure url="https://github.com/tareq1988/prayer-times-macos/releases/download/v0.1.0/PrayerTimes-0.1.0.zip" length="9560765" type="application/octet-stream" sparkle:edSignature="qWFtdWIrpZOhd0OD0YNEQWcHsRiiTRQa7epXN4uxaAe4dU7qKI0H1yJUv3ushIg6EYDZHTAmk9pK3fdhgOjrDA=="/>
         </item>
     </channel>
 </rss>
