@@ -2,6 +2,8 @@
   <img src="docs/icon.png" width="128" height="128" alt="Prayer Times icon">
   <h1>Prayer Times</h1>
   <p>A native, free macOS menu bar app for Islamic prayer times.</p>
+  <br>
+  <img src="docs/screenshot.png" width="620" alt="Prayer Times menu bar panel">
 </div>
 
 ---

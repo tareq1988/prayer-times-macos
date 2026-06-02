@@ -4,49 +4,142 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prayer Times — macOS menu bar app</title>
+  <meta name="description" content="A native, free macOS menu bar app for Islamic prayer times.">
+  <meta property="og:title" content="Prayer Times">
+  <meta property="og:description" content="A native, free macOS menu bar app for Islamic prayer times.">
+  <meta property="og:image" content="https://tareq1988.github.io/prayer-times-macos/screenshot.png">
+  <link rel="icon" href="icon.png">
   <style>
-    :root { color-scheme: light dark; }
+    :root {
+      color-scheme: light dark;
+      --brand: #2e9e4c;
+      --brand-dark: #1f7a39;
+      --bg: #f6f7f5;
+      --bg2: #eef1ec;
+      --card: #ffffff;
+      --text: #1c1c1e;
+      --muted: #6b7280;
+      --border: rgba(0,0,0,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1311; --bg2: #0b0f0d; --card: #181d1a;
+        --text: #f2f2f7; --muted: #9aa3a0; --border: rgba(255,255,255,.10);
+      }
+    }
+    * { box-sizing: border-box; }
     body {
-      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      max-width: 640px; margin: 0 auto; padding: 3rem 1.25rem; color: #1c1c1e;
+      margin: 0; color: var(--text);
+      font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background:
+        radial-gradient(1200px 600px at 50% -10%, rgba(46,158,76,.18), transparent 60%),
+        linear-gradient(var(--bg), var(--bg2));
+      background-attachment: fixed;
     }
-    @media (prefers-color-scheme: dark) { body { background: #1c1c1e; color: #f2f2f7; } }
-    h1 { font-size: 2rem; margin-bottom: .25rem; }
-    .sub { color: #8e8e93; margin-top: 0; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 1.25rem; }
+    a { color: var(--brand); }
+
+    /* Hero */
+    header { text-align: center; padding: 4.5rem 0 1rem; }
+    header img.logo { width: 104px; height: 104px; filter: drop-shadow(0 8px 24px rgba(0,0,0,.25)); }
+    h1 { font-size: 2.6rem; margin: 1rem 0 .25rem; letter-spacing: -.02em; }
+    .tagline { color: var(--muted); font-size: 1.2rem; margin: 0 auto 1.75rem; max-width: 30ch; }
+
+    .cta { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; align-items: center; }
     .btn {
-      display: inline-block; margin: 1.25rem 0; padding: .7rem 1.3rem;
-      background: #2e9e4c; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600;
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .8rem 1.5rem; border-radius: 12px; font-weight: 600; text-decoration: none;
+      background: linear-gradient(var(--brand), var(--brand-dark)); color: #fff;
+      box-shadow: 0 6px 18px rgba(46,158,76,.35); transition: transform .12s ease, box-shadow .12s ease;
     }
-    code { background: rgba(128,128,128,.18); padding: .15em .4em; border-radius: 5px; font-size: .9em; }
-    ul { padding-left: 1.2rem; }
-    a { color: #2e9e4c; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(46,158,76,.45); }
+    .btn.secondary {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      box-shadow: none; font-weight: 500;
+    }
+    .req { color: var(--muted); font-size: .9rem; margin-top: 1rem; }
+
+    /* Screenshot */
+    .shot { margin: 2.5rem auto 1rem; text-align: center; }
+    .shot img {
+      width: 100%; max-width: 680px; height: auto; border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.30); border: 1px solid var(--border);
+    }
+
+    /* Sections */
+    section { padding: 2.5rem 0; }
+    h2 { font-size: 1.5rem; margin: 0 0 1.25rem; letter-spacing: -.01em; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .feat {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.2rem;
+    }
+    .feat .ic { font-size: 1.4rem; }
+    .feat h3 { margin: .5rem 0 .3rem; font-size: 1.05rem; }
+    .feat p { margin: 0; color: var(--muted); font-size: .94rem; }
+
+    pre {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.1rem; overflow-x: auto; margin: .5rem 0;
+    }
+    code { font: .92em "SF Mono", ui-monospace, Menlo, monospace; }
+    .note {
+      background: rgba(46,158,76,.08); border: 1px solid rgba(46,158,76,.25);
+      border-radius: 12px; padding: 1rem 1.1rem; color: var(--muted); font-size: .94rem;
+    }
+    .note code { color: var(--text); background: var(--card); padding: .12em .4em; border-radius: 5px; }
+
+    footer { text-align: center; color: var(--muted); padding: 2.5rem 0 3.5rem; font-size: .9rem; }
+    footer a { color: var(--muted); }
   </style>
 </head>
 <body>
-  <img src="icon.png" width="128" height="128" alt="Prayer Times icon" style="border-radius:22px">
-  <h1>Prayer Times</h1>
-  <p class="sub">A native, free macOS menu bar app for Islamic prayer times.</p>
+  <div class="wrap">
+    <header>
+      <img class="logo" src="icon.png" alt="Prayer Times icon">
+      <h1>Prayer Times</h1>
+      <p class="tagline">A native, free macOS menu bar app for Islamic prayer times.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/tareq1988/prayer-times-macos/releases/latest">↓ Download for macOS</a>
+        <a class="btn secondary" href="https://github.com/tareq1988/prayer-times-macos">View on GitHub</a>
+      </div>
+      <p class="req">macOS 14 Sonoma or later · Universal (Apple silicon &amp; Intel) · Free &amp; open source</p>
+    </header>
 
-  <a class="btn" href="https://github.com/tareq1988/prayer-times-macos/releases/latest">Download latest release</a>
+    <div class="shot">
+      <img src="screenshot.png" alt="Prayer Times menu bar panel showing today's prayer times">
+    </div>
 
-  <h2>Install via Homebrew</h2>
-  <pre><code>brew install --cask tareq1988/tap/prayer-times</code></pre>
-  <p>The current build is ad-hoc signed (not yet notarized), so macOS Gatekeeper
-  blocks it on first launch. To open it, run
-  <code>xattr -dr com.apple.quarantine "/Applications/Prayer Times.app"</code>,
-  or go to System Settings → Privacy &amp; Security → Open Anyway.</p>
+    <section>
+      <h2>Features</h2>
+      <div class="grid">
+        <div class="feat"><div class="ic">🕌</div><h3>Menu bar at a glance</h3><p>Next prayer and a live countdown, with seven label styles and a mosque glyph.</p></div>
+        <div class="feat"><div class="ic">🧭</div><h3>Accurate methods</h3><p>8 methods incl. Diyanet (validated to ±1 min), plus madhab &amp; high-latitude rules.</p></div>
+        <div class="feat"><div class="ic">🔔</div><h3>Smart notifications</h3><p>Prayer-time, early reminder, and iqamah alerts — each with its own sound.</p></div>
+        <div class="feat"><div class="ic">📣</div><h3>Full Adhan</h3><p>Plays the complete Adhan (Makkah / Madinah) at prayer time, with a stop control.</p></div>
+        <div class="feat"><div class="ic">📍</div><h3>Location aware</h3><p>Manual coordinates or one-shot auto-detect with country → method mapping.</p></div>
+        <div class="feat"><div class="ic">🌍</div><h3>Localized</h3><p>English, العربية (RTL), Türkçe, and বাংলা — with Liquid Glass on Tahoe.</p></div>
+      </div>
+    </section>
 
-  <h2>Features</h2>
-  <ul>
-    <li>Next prayer + live countdown in the menu bar (7 label styles)</li>
-    <li>Today's six times, iqamah, Liquid Glass panel (macOS Tahoe)</li>
-    <li>8 calculation methods (Diyanet validated to ±1 min) + madhab + high-latitude rules</li>
-    <li>Per-prayer notifications, early reminders, and full Adhan playback</li>
-    <li>Location auto-detect; localized in English, العربية, Türkçe, বাংলা</li>
-    <li>Auto-updates via Sparkle</li>
-  </ul>
+    <section>
+      <h2>Install</h2>
+      <p>Via Homebrew:</p>
+      <pre><code>brew install --cask tareq1988/tap/prayer-times</code></pre>
+      <p>Or <a href="https://github.com/tareq1988/prayer-times-macos/releases/latest">download the latest <code>.zip</code></a> and drag it to Applications.</p>
+      <p class="note">
+        The current builds are ad-hoc signed (not yet notarized), so macOS Gatekeeper
+        blocks them on first launch. To open it, run<br>
+        <code>xattr -dr com.apple.quarantine "/Applications/Prayer Times.app"</code><br>
+        or go to <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
+      </p>
+    </section>
 
-  <p>Requirements: macOS 14 Sonoma or later · Universal (Apple silicon + Intel)</p>
-  <p><a href="https://github.com/tareq1988/prayer-times-macos">Source on GitHub</a> · MIT licensed</p>
+    <footer>
+      <a href="https://github.com/tareq1988/prayer-times-macos">Source</a> ·
+      <a href="https://github.com/tareq1988/prayer-times-macos/releases">Releases</a> ·
+      MIT licensed © Tareq Hasan
+    </footer>
+  </div>
 </body>
 </html>
