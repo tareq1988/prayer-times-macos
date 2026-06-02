@@ -84,13 +84,13 @@ private struct PrayerNotificationRow: View {
                 }
             }
             Button {
-                audio.preview(selection.wrappedValue)
+                if audio.isPlaying { audio.stop() } else { audio.preview(selection.wrappedValue) }
             } label: {
-                Image(systemName: "play.circle")
+                Image(systemName: audio.isPlaying ? "stop.circle" : "play.circle")
             }
             .buttonStyle(.borderless)
-            .help("Preview sound")
-            .disabled(selection.wrappedValue == .none || selection.wrappedValue == .systemDefault)
+            .help(audio.isPlaying ? "Stop" : "Preview sound")
+            .disabled(selection.wrappedValue == .none)
         }
     }
 }

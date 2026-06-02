@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AppKit
 import Observation
 import OSLog
 import PrayerKit
@@ -30,12 +31,24 @@ final class AudioService: NSObject, AVAudioPlayerDelegate {
         play(url)
     }
 
-    /// Play a short preview for the settings sound pickers. Adhan selections
-    /// preview their short notification clip, not the full file.
+    /// Play a preview for the settings sound pickers. Adhan selections preview
+    /// the full Adhan (so the user actually hears what they chose); other sounds
+    /// preview their short clip.
     func preview(_ sound: NotificationSound) {
-        guard let fileName = sound.notificationClipFileName else { return }   // .none / .systemDefault
+        switch sound {
+        case .none:
+            return
+        case .systemDefault:
+            NSSound.beep()   // no file — represent the OS notification sound
+            return
+        default:
+            break
+        }
+        guard let fileName = sound.fullAdhanFileName ?? sound.notificationClipFileName else {
+            return
+        }
         guard let url = Self.bundleURL(for: fileName) else {
-            log.warning("Preview clip not bundled: \(fileName, privacy: .public)")
+            log.warning("Preview file not bundled: \(fileName, privacy: .public)")
             return
         }
         play(url)

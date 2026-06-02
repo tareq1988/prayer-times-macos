@@ -43,8 +43,14 @@ if [[ "$QUIT_ONLY" -eq 1 ]]; then
   exit 0
 fi
 
-# Regenerate the Xcode project when missing or when forced.
-if [[ "$FORCE_GENERATE" -eq 1 || ! -d "$PROJECT" ]]; then
+# Regenerate the Xcode project when missing, forced, or when any source/resource
+# is newer than the project (so newly added files/assets are always picked up —
+# XcodeGen captures the file list at generate time).
+NEWER=""
+if [[ -f "$PROJECT/project.pbxproj" ]]; then
+  NEWER="$(find PrayerTimes project.yml -newer "$PROJECT/project.pbxproj" 2>/dev/null | head -1)"
+fi
+if [[ "$FORCE_GENERATE" -eq 1 || ! -d "$PROJECT" || -n "$NEWER" ]]; then
   echo "→ Generating Xcode project…"
   xcodegen generate
 fi
@@ -52,12 +58,18 @@ fi
 echo "→ Building ($CONFIG)…"
 # Surface only warnings/errors and the final status; full log on failure.
 BUILD_LOG="$(mktemp)"
+# Proper ad-hoc signing (no cert/team needed) so the bundle identifier is bound
+# and resources are sealed — required for UserNotifications to grant authorization.
+# A bare CODE_SIGNING_ALLOWED=NO produces a linker ad-hoc signature that macOS
+# treats as identity-less, and the notification prompt never appears.
 if ! xcodebuild \
       -project "$PROJECT" \
       -scheme "$SCHEME" \
       -configuration "$CONFIG" \
       -destination 'platform=macOS' \
-      CODE_SIGNING_ALLOWED=NO \
+      CODE_SIGN_IDENTITY="-" \
+      CODE_SIGNING_REQUIRED=YES \
+      CODE_SIGNING_ALLOWED=YES \
       build >"$BUILD_LOG" 2>&1; then
   echo "✗ Build failed:"
   grep -E "error:" "$BUILD_LOG" || tail -30 "$BUILD_LOG"
