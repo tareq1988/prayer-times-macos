@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  Sparkle appcast (spec §7.8). This is a placeholder; the release workflow
-  regenerates it (EdDSA-signed) on every version tag and commits it here.
-  GitHub Pages serves it at https://tareq1988.github.io/prayer-times-macos/appcast.xml,
-  which is what SUFeedURL in Info.plist points to.
--->
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
-  <channel>
-    <title>Prayer Times</title>
-    <description>Updates for Prayer Times</description>
-    <language>en</language>
-  </channel>
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Prayer Times</title>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>Tue, 02 Jun 2026 12:17:29 +0300</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/tareq1988/prayer-times-macos/releases/download/v0.1.0/PrayerTimes-0.1.0.zip" length="9560791" type="application/octet-stream" sparkle:edSignature="pixiEcUZ23jB+zRiUOFiw3ijy99uV8g90C+sr42eSMmrSHnd8I7uzIqEb0g7ZvA1KVnESRAx2cqImXgXDoKgBA=="/>
+        </item>
+    </channel>
 </rss>

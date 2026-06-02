@@ -20,3 +20,7 @@ DerivedData/
 *.pem
 dsa_priv.pem
 ed25519_priv.pem
+
+# Local release tooling + artifacts
+.tools/
+build/

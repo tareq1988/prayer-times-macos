@@ -38,7 +38,7 @@
 	<key>SUFeedURL</key>
 	<string>https://tareq1988.github.io/prayer-times-macos/appcast.xml</string>
 	<key>SUPublicEDKey</key>
-	<string>REPLACE_WITH_SPARKLE_ED_PUBLIC_KEY</string>
+	<string>dHWH9EVDHeL09SIRBitm5iNE5NAe5Otlzt4CVgMxXbs=</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUScheduledCheckInterval</key>
