@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparkle appcast (spec §7.8). This is a placeholder; the release workflow
+  regenerates it (EdDSA-signed) on every version tag and commits it here.
+  GitHub Pages serves it at https://<user>.github.io/prayer-times/appcast.xml,
+  which is what SUFeedURL in Info.plist points to.
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Prayer Times</title>
+    <description>Updates for Prayer Times</description>
+    <language>en</language>
+  </channel>
+</rss>

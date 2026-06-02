@@ -5,6 +5,7 @@ import PrayerKit
 /// override, and the automatic-update toggle.
 struct GeneralTab: View {
     @Bindable var settings: SettingsStore
+    let updates: UpdateService
     @State private var loginError: String?
 
     var body: some View {
@@ -40,10 +41,7 @@ struct GeneralTab: View {
             }
 
             Section("Updates") {
-                Toggle("Check for updates automatically", isOn: $settings.settings.autoUpdateEnabled)
-                Text("Automatic updates are enabled in a later build.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Toggle("Check for updates automatically", isOn: autoUpdateBinding)
             }
         }
         .formStyle(.grouped)
@@ -63,6 +61,16 @@ struct GeneralTab: View {
                 } catch {
                     loginError = String(localized: "Couldn't update login item: \(error.localizedDescription)")
                 }
+            }
+        )
+    }
+
+    private var autoUpdateBinding: Binding<Bool> {
+        Binding(
+            get: { settings.settings.autoUpdateEnabled },
+            set: { enabled in
+                settings.settings.autoUpdateEnabled = enabled
+                updates.automaticallyChecksForUpdates = enabled
             }
         )
     }

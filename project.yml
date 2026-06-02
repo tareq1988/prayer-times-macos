@@ -18,6 +18,9 @@ settings:
 packages:
   PrayerKit:
     path: PrayerKit
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
 
 targets:
   PrayerTimes:
@@ -29,6 +32,8 @@ targets:
           - "**/README.md"
     dependencies:
       - package: PrayerKit
+      - package: Sparkle
+        product: Sparkle
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.wedevs.prayertimes

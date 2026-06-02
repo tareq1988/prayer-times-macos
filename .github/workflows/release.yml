@@ -1,0 +1,166 @@
+name: Release
+
+# Triggered by pushing a version tag, e.g. `git tag v0.1.0 && git push --tags`.
+# Builds a universal, Developer-ID-signed, notarized, stapled .app, EdDSA-signs it
+# for Sparkle, updates the appcast, and publishes a GitHub Release. (Spec §13.)
+#
+# Required repository secrets (see RELEASING.md):
+#   BUILD_CERTIFICATE_BASE64   Developer ID Application cert (.p12), base64-encoded
+#   P12_PASSWORD               password for the .p12
+#   KEYCHAIN_PASSWORD          any temporary password for the CI keychain
+#   APPLE_TEAM_ID              your 10-char Apple Team ID
+#   AC_NOTARY_APPLE_ID         Apple ID email for notarytool
+#   AC_NOTARY_PASSWORD         app-specific password for notarytool
+#   SPARKLE_ED_PRIVATE_KEY     Sparkle EdDSA private key (from generate_keys)
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # create releases + commit the appcast
+
+jobs:
+  release:
+    runs-on: macos-15
+    env:
+      SCHEME: PrayerTimes
+      APP_NAME: "Prayer Times"
+      SPARKLE_VERSION: "2.6.4"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.app || sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Derive version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Import Developer ID certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          echo "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+      - name: Archive (universal)
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -project PrayerTimes.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/PrayerTimes.xcarchive" \
+            -destination 'generic/platform=macOS' \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp --options runtime"
+
+      - name: Export archive
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>developer-id</string>
+            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>signingStyle</key><string>manual</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/PrayerTimes.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Notarize & staple
+        env:
+          AC_NOTARY_APPLE_ID: ${{ secrets.AC_NOTARY_APPLE_ID }}
+          AC_NOTARY_PASSWORD: ${{ secrets.AC_NOTARY_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/export/$APP_NAME.app"
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --apple-id "$AC_NOTARY_APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$AC_NOTARY_PASSWORD" \
+            --wait
+          xcrun stapler staple "$APP"
+
+      - name: Package zip for distribution
+        id: pkg
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dist"
+          ZIP="$RUNNER_TEMP/dist/PrayerTimes-${{ steps.ver.outputs.version }}.zip"
+          ditto -c -k --keepParent "$RUNNER_TEMP/export/$APP_NAME.app" "$ZIP"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Sparkle tools
+        run: |
+          set -euo pipefail
+          curl -L -o "$RUNNER_TEMP/sparkle.tar.xz" \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          mkdir -p "$RUNNER_TEMP/sparkle"
+          tar -xf "$RUNNER_TEMP/sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
+
+      - name: Sign + generate appcast (EdDSA)
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          BIN="$RUNNER_TEMP/sparkle/bin"
+          # generate_appcast EdDSA-signs every archive in the folder and writes appcast.xml.
+          echo "$SPARKLE_ED_PRIVATE_KEY" | "$BIN/generate_appcast" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
+            "$RUNNER_TEMP/dist"
+          mkdir -p docs
+          cp "$RUNNER_TEMP/dist/appcast.xml" docs/appcast.xml
+
+      - name: Commit appcast
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/appcast.xml
+          git commit -m "chore(release): update appcast for ${GITHUB_REF_NAME}" || echo "no appcast changes"
+          git push origin HEAD:main || echo "push skipped"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.pkg.outputs.zip }}
+            docs/appcast.xml
+          generate_release_notes: true
+
+      # Optional: open a PR to bump the Homebrew cask version + sha256.
+      # Set up a tap repo and a PAT, then wire this step (see RELEASING.md).
+      - name: Cask bump (manual for now)
+        run: |
+          echo "version=${{ steps.ver.outputs.version }}"
+          echo "sha256=${{ steps.pkg.outputs.sha256 }}"
+          echo "Update Casks/prayer-times.rb in your tap with the values above."

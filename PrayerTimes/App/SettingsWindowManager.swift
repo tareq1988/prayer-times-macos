@@ -15,15 +15,17 @@ import OSLog
 final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate {
     private let settings: SettingsStore
     private let audio: AudioService
+    private let updates: UpdateService
     private var window: NSWindow?
     private let log = Logger(subsystem: "com.wedevs.prayertimes", category: "settings")
 
     /// Fixed pane size so the window doesn't jump between tabs; tall panes scroll.
     private static let paneSize = NSSize(width: 480, height: 520)
 
-    init(settings: SettingsStore, audio: AudioService) {
+    init(settings: SettingsStore, audio: AudioService, updates: UpdateService) {
         self.settings = settings
         self.audio = audio
+        self.updates = updates
     }
 
     // MARK: Tabs
@@ -116,7 +118,7 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
     private func pane(for tab: Tab) -> AnyView {
         let content: AnyView
         switch tab {
-        case .general: content = AnyView(GeneralTab(settings: settings))
+        case .general: content = AnyView(GeneralTab(settings: settings, updates: updates))
         case .location: content = AnyView(LocationTimeTab(settings: settings))
         case .calculation: content = AnyView(CalculationTab(settings: settings))
         case .notifications: content = AnyView(NotificationsTab(settings: settings, audio: audio))

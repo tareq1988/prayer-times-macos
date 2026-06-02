@@ -8,6 +8,7 @@ import PrayerKit
 struct MenuBarPanel: View {
     let clock: PrayerClock
     let openSettings: () -> Void
+    let checkForUpdates: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -160,13 +161,11 @@ struct MenuBarPanel: View {
             .buttonStyle(.plain)
             .menuRowHighlight()
 
-            // Wired to Sparkle in M8 (spec §7.8); placeholder keeps the layout.
-            Button { } label: {
+            Button { checkForUpdates() } label: {
                 footerLabel("Check for Updates…", systemImage: "arrow.triangle.2.circlepath")
             }
             .buttonStyle(.plain)
-            .disabled(true)
-            .foregroundStyle(.secondary)
+            .menuRowHighlight()
 
             Button { NSApplication.shared.terminate(nil) } label: {
                 footerLabel("Quit", systemImage: "power")

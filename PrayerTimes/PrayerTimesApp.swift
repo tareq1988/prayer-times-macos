@@ -9,6 +9,7 @@ struct PrayerTimesApp: App {
     @State private var settings: SettingsStore
     @State private var clock: PrayerClock
     private let settingsWindow: SettingsWindowManager
+    private let updates = UpdateService()
 
     init() {
         let location = LocationService()
@@ -17,7 +18,10 @@ struct PrayerTimesApp: App {
         let notifications = NotificationService(audio: audio)
         _settings = State(initialValue: settings)
         _clock = State(initialValue: PrayerClock(settings: settings, notifications: notifications, audio: audio))
-        settingsWindow = SettingsWindowManager(settings: settings, audio: audio)
+        settingsWindow = SettingsWindowManager(settings: settings, audio: audio, updates: updates)
+
+        // Mirror the persisted preference into Sparkle.
+        updates.automaticallyChecksForUpdates = settings.settings.autoUpdateEnabled
 
         // Auto-detect on launch when the user is in automatic mode (spec §7.7).
         Task { await settings.detectLocationIfNeeded() }
@@ -25,7 +29,11 @@ struct PrayerTimesApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarPanel(clock: clock, openSettings: { settingsWindow.show() })
+            MenuBarPanel(
+                clock: clock,
+                openSettings: { settingsWindow.show() },
+                checkForUpdates: { updates.checkForUpdates() }
+            )
         } label: {
             MenuBarLabel(clock: clock, settings: settings)
         }

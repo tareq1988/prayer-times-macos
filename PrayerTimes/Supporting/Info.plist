@@ -33,5 +33,15 @@
 	<!-- Used later by the optional location auto-detect (spec §7.7, §12). -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Prayer Times uses your location once to detect your city and the appropriate calculation method. It never tracks you continuously.</string>
+	<!-- Sparkle auto-update (spec §7.8). Replace SUPublicEDKey with the public
+	     key from `generate_keys`, and point SUFeedURL at the hosted appcast. -->
+	<key>SUFeedURL</key>
+	<string>https://YOUR_GITHUB_USER.github.io/prayer-times/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>REPLACE_WITH_SPARKLE_ED_PUBLIC_KEY</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>
