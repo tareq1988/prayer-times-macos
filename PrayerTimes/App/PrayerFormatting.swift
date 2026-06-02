@@ -49,4 +49,34 @@ enum PrayerFormatting {
         let h = total / 3600, m = (total % 3600) / 60, s = total % 60
         return String(format: "%d:%02d:%02d", h, m, s)
     }
+
+    // MARK: Settings enum names (placeholders until M6 localization)
+
+    static func menuBarStyleName(_ style: MenuBarStyle) -> String {
+        switch style {
+        case .nextPrayerCountdown: return "Next prayer + countdown"
+        case .nextPrayerClock: return "Next prayer + clock time"
+        case .iconOnly: return "Icon only"
+        }
+    }
+
+    static func highLatitudeRuleName(_ rule: HighLatitudeRule) -> String {
+        switch rule {
+        case .none: return "None"
+        case .middleOfNight: return "Middle of the night"
+        case .seventhOfNight: return "One-seventh of the night"
+        case .angleBased: return "Angle-based"
+        }
+    }
+
+    static func soundName(_ sound: NotificationSound) -> String {
+        switch sound {
+        case .none: return "None"
+        case .systemDefault: return "Default"
+        case .softChime: return "Soft chime"
+        case .takbir: return "Takbir"
+        case .adhanMakkah: return "Adhan (Makkah)"
+        case .adhanMadinah: return "Adhan (Madinah)"
+        }
+    }
 }

@@ -3,41 +3,47 @@ import Observation
 import PrayerKit
 
 /// The live clock that drives the menu bar. It computes today's (and tomorrow's)
-/// prayer times from `PrayerKit`, tracks the current instant once per second for
-/// the countdown, and recomputes on day rollover.
+/// prayer times from `PrayerKit` using the current `SettingsStore` inputs, tracks
+/// the current instant once per second for the countdown, and recomputes on day
+/// rollover or whenever a setting that affects the times changes.
 ///
-/// M2 scope: location, timezone, and method are hardcoded. M3 replaces these
-/// with `SettingsStore`, and M4 adds notification/Adhan scheduling. The
-/// computation and "next prayer" logic live here so those milestones only need
-/// to swap the inputs.
+/// M4 adds notification/Adhan scheduling driven by the same recompute hook.
 @MainActor
 @Observable
 final class PrayerClock {
 
-    // MARK: Hardcoded inputs (replaced by SettingsStore in M3)
-    let coordinates = Coordinates(latitude: 41.0082, longitude: 28.9784)   // Istanbul
-    let timeZone = TimeZone(identifier: "Europe/Istanbul") ?? .current
-    let methodName = "Diyanet İşleri (Türkiye)"
-    private let method = DiyanetAdapter()
+    private let settings: SettingsStore
 
     // MARK: Live state
     private(set) var today: PrayerTimes
     private(set) var tomorrow: PrayerTimes
     private(set) var now: Date
 
+    /// Cached inputs the current `today`/`tomorrow` were computed from, plus the
+    /// civil day, so `tick()` can detect both setting changes and rollover.
+    private var lastInputs: ResolvedInputs
+    private var lastDay: Date
+
     private var tickTask: Task<Void, Never>?
 
-    init() {
+    init(settings: SettingsStore) {
+        self.settings = settings
         let start = Date()
         now = start
-        today = Self.compute(method: method, coordinates: coordinates,
-                             timeZone: timeZone, dayOffset: 0, from: start)
-        tomorrow = Self.compute(method: method, coordinates: coordinates,
-                                timeZone: timeZone, dayOffset: 1, from: start)
+        let inputs = settings.resolvedInputs
+        lastInputs = inputs
+        let tz = TimeZone(identifier: inputs.timeZoneID) ?? .current
+        lastDay = Self.civilDay(of: start, in: tz)
+        today = Self.compute(inputs: inputs, dayOffset: 0, from: start)
+        tomorrow = Self.compute(inputs: inputs, dayOffset: 1, from: start)
         startTicking()
     }
 
-    // MARK: Derived values
+    // MARK: Derived values (read live from settings)
+
+    var coordinates: Coordinates { settings.resolvedCoordinates }
+    var timeZone: TimeZone { settings.resolvedTimeZone }
+    var methodName: String { settings.resolvedMethodName }
 
     /// The upcoming prayer: the next one today, or tomorrow's Fajr after Isha.
     var nextEvent: (prayer: Prayer, time: Date)? {
@@ -53,7 +59,7 @@ final class PrayerClock {
     /// Today's six times in chronological order.
     var orderedToday: [(prayer: Prayer, time: Date)] { today.ordered }
 
-    // MARK: Ticking & rollover
+    // MARK: Ticking, rollover & settings changes
 
     private func startTicking() {
         tickTask = Task { [weak self] in
@@ -66,42 +72,37 @@ final class PrayerClock {
     }
 
     private func tick() {
-        let current = Date()
-        now = current
-        // Recompute when the calendar day (in the master timezone) has rolled over.
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = timeZone
-        if !cal.isDate(current, inSameDayAs: today.date) {
-            recompute(from: current)
+        now = Date()
+        let inputs = settings.resolvedInputs
+        let tz = TimeZone(identifier: inputs.timeZoneID) ?? .current
+        let day = Self.civilDay(of: now, in: tz)
+        if inputs != lastInputs || day != lastDay {
+            lastInputs = inputs
+            lastDay = day
+            today = Self.compute(inputs: inputs, dayOffset: 0, from: now)
+            tomorrow = Self.compute(inputs: inputs, dayOffset: 1, from: now)
         }
-    }
-
-    /// Force a recomputation (e.g. after a settings change in later milestones).
-    func recompute(from reference: Date = Date()) {
-        today = Self.compute(method: method, coordinates: coordinates,
-                             timeZone: timeZone, dayOffset: 0, from: reference)
-        tomorrow = Self.compute(method: method, coordinates: coordinates,
-                                timeZone: timeZone, dayOffset: 1, from: reference)
     }
 
     // MARK: Engine bridge
 
-    private static func compute(
-        method: some CalculationMethodAdapter,
-        coordinates: Coordinates,
-        timeZone: TimeZone,
-        dayOffset: Int,
-        from reference: Date
-    ) -> PrayerTimes {
+    private static func compute(inputs: ResolvedInputs, dayOffset: Int, from reference: Date) -> PrayerTimes {
+        let tz = TimeZone(identifier: inputs.timeZoneID) ?? .current
         var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = timeZone
+        cal.timeZone = tz
         let day = cal.date(byAdding: .day, value: dayOffset, to: reference) ?? reference
         let comps = cal.dateComponents([.year, .month, .day], from: day)
         return PrayerTimeEngine.calculate(
             date: comps,
-            coordinates: coordinates,
-            params: method.resolve(for: coordinates),
-            timeZone: timeZone
+            coordinates: inputs.coordinates,
+            params: inputs.parameters,
+            timeZone: tz
         )
+    }
+
+    private static func civilDay(of date: Date, in timeZone: TimeZone) -> Date {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = timeZone
+        return cal.startOfDay(for: date)
     }
 }

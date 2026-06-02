@@ -80,6 +80,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
     public var menuBarStyle: MenuBarStyle
     public var launchAtLogin: Bool
     public var languageOverride: String?            // BCP-47, nil = follow system
+    public var masterNotificationsEnabled: Bool     // global on/off (spec §7.6)
     public var notifications: [Prayer: PrayerNotificationConfig]
     public var autoUpdateEnabled: Bool
 
@@ -95,6 +96,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         menuBarStyle: MenuBarStyle = .nextPrayerCountdown,
         launchAtLogin: Bool = false,
         languageOverride: String? = nil,
+        masterNotificationsEnabled: Bool = true,
         notifications: [Prayer: PrayerNotificationConfig] = AppSettings.defaultNotifications,
         autoUpdateEnabled: Bool = true
     ) {
@@ -109,6 +111,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         self.menuBarStyle = menuBarStyle
         self.launchAtLogin = launchAtLogin
         self.languageOverride = languageOverride
+        self.masterNotificationsEnabled = masterNotificationsEnabled
         self.notifications = notifications
         self.autoUpdateEnabled = autoUpdateEnabled
     }
