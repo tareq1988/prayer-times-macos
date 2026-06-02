@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#
+# Build, kill, and relaunch the Prayer Times menu bar app.
+#
+# Usage:
+#   ./run.sh              # regenerate (if needed) + build + relaunch
+#   ./run.sh -g           # force `xcodegen generate` first
+#   ./run.sh -r           # build Release instead of Debug
+#   ./run.sh -q           # just quit the running app (no build)
+#
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+PROJECT="PrayerTimes.xcodeproj"
+SCHEME="PrayerTimes"
+CONFIG="Debug"
+APP_PROCESS="Prayer Times.app/Contents/MacOS"
+FORCE_GENERATE=0
+QUIT_ONLY=0
+
+while getopts "grqh" opt; do
+  case "$opt" in
+    g) FORCE_GENERATE=1 ;;
+    r) CONFIG="Release" ;;
+    q) QUIT_ONLY=1 ;;
+    h) sed -n '2,12p' "$0"; exit 0 ;;
+    *) echo "Unknown option. Use -h for help."; exit 1 ;;
+  esac
+done
+
+kill_app() {
+  if pgrep -f "$APP_PROCESS" >/dev/null; then
+    echo "→ Quitting running instance…"
+    pkill -f "$APP_PROCESS" || true
+    sleep 1
+  fi
+}
+
+if [[ "$QUIT_ONLY" -eq 1 ]]; then
+  kill_app
+  echo "✓ Quit."
+  exit 0
+fi
+
+# Regenerate the Xcode project when missing or when forced.
+if [[ "$FORCE_GENERATE" -eq 1 || ! -d "$PROJECT" ]]; then
+  echo "→ Generating Xcode project…"
+  xcodegen generate
+fi
+
+echo "→ Building ($CONFIG)…"
+# Surface only warnings/errors and the final status; full log on failure.
+BUILD_LOG="$(mktemp)"
+if ! xcodebuild \
+      -project "$PROJECT" \
+      -scheme "$SCHEME" \
+      -configuration "$CONFIG" \
+      -destination 'platform=macOS' \
+      CODE_SIGNING_ALLOWED=NO \
+      build >"$BUILD_LOG" 2>&1; then
+  echo "✗ Build failed:"
+  grep -E "error:" "$BUILD_LOG" || tail -30 "$BUILD_LOG"
+  rm -f "$BUILD_LOG"
+  exit 1
+fi
+grep -E "warning:.*\.swift" "$BUILD_LOG" | grep -v appintents || true
+rm -f "$BUILD_LOG"
+echo "✓ Build succeeded."
+
+APP="$(find ~/Library/Developer/Xcode/DerivedData/PrayerTimes-*/Build/Products/"$CONFIG" \
+        -maxdepth 1 -name "*.app" 2>/dev/null | head -1)"
+if [[ -z "${APP:-}" ]]; then
+  echo "✗ Could not locate the built .app."
+  exit 1
+fi
+
+kill_app
+
+echo "→ Launching: $APP"
+open "$APP"
+sleep 1
+if pgrep -f "$APP_PROCESS" >/dev/null; then
+  echo "✓ Running. Look for the item in your menu bar."
+else
+  echo "✗ App did not stay running."
+  exit 1
+fi

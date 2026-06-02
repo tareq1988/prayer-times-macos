@@ -19,6 +19,18 @@ enum PrayerFormatting {
         }
     }
 
+    /// SF Symbol representing each prayer's time of day.
+    static func icon(_ prayer: Prayer) -> String {
+        switch prayer {
+        case .fajr: return "sunrise"
+        case .sunrise: return "sun.horizon.fill"
+        case .dhuhr: return "sun.max.fill"
+        case .asr: return "cloud.sun.fill"
+        case .maghrib: return "sunset.fill"
+        case .isha: return "moon.stars.fill"
+        }
+    }
+
     /// Short clock time (e.g. "13:08" / "1:08 PM") in the given timezone.
     static func clock(_ date: Date, in timeZone: TimeZone) -> String {
         var fmt = Date.FormatStyle(date: .omitted, time: .shortened)
@@ -48,6 +60,15 @@ enum PrayerFormatting {
         let total = Int(seconds.rounded(.down))
         let h = total / 3600, m = (total % 3600) / 60, s = total % 60
         return String(format: "%d:%02d:%02d", h, m, s)
+    }
+
+    /// Compact relative countdown for chips: "3h 25m", "25m", or "45s".
+    static func shortCountdown(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds.rounded(.down))
+        let h = total / 3600, m = (total % 3600) / 60, s = total % 60
+        if h > 0 { return "\(h)h \(m)m" }
+        if m > 0 { return "\(m)m" }
+        return "\(s)s"
     }
 
     // MARK: Settings enum names (placeholders until M6 localization)

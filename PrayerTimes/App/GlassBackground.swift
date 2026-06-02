@@ -1,22 +1,23 @@
 import SwiftUI
 
-/// Centralizes the Liquid Glass adoption (spec §10). On macOS 26+ it uses the
-/// Tahoe glass material; on Sonoma/Sequoia it falls back to the standard
-/// material. Feature views just call `.glassBackground()` and stay clean of
-/// availability checks.
+/// Centralizes Liquid Glass adoption (spec §10). On macOS 26 (Tahoe) it uses the
+/// real `glassEffect` material; on Sonoma/Sequoia it falls back to the standard
+/// material. Feature views just call `.glassBackground()`.
 struct GlassBackground: ViewModifier {
+    var cornerRadius: CGFloat = 14
+
     func body(content: Content) -> some View {
         if #available(macOS 26, *) {
-            content.background(.regularMaterial)   // TODO(M7): swap for glassEffect()
+            content.glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
         } else {
-            content.background(.regularMaterial)
+            content.background(.regularMaterial, in: .rect(cornerRadius: cornerRadius))
         }
     }
 }
 
 extension View {
-    /// Apply the platform-appropriate panel background material.
-    func glassBackground() -> some View {
-        modifier(GlassBackground())
+    /// Apply the platform-appropriate panel background (Liquid Glass on Tahoe).
+    func glassBackground(cornerRadius: CGFloat = 14) -> some View {
+        modifier(GlassBackground(cornerRadius: cornerRadius))
     }
 }
