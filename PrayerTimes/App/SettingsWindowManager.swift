@@ -16,16 +16,18 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
     private let settings: SettingsStore
     private let audio: AudioService
     private let updates: UpdateService
+    private let notifications: NotificationService
     private var window: NSWindow?
     private let log = Logger(subsystem: "co.tareq.prayertimes", category: "settings")
 
     /// Fixed pane size so the window doesn't jump between tabs; tall panes scroll.
     private static let paneSize = NSSize(width: 480, height: 520)
 
-    init(settings: SettingsStore, audio: AudioService, updates: UpdateService) {
+    init(settings: SettingsStore, audio: AudioService, updates: UpdateService, notifications: NotificationService) {
         self.settings = settings
         self.audio = audio
         self.updates = updates
+        self.notifications = notifications
     }
 
     // MARK: Tabs
@@ -121,7 +123,7 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
         case .general: content = AnyView(GeneralTab(settings: settings, updates: updates))
         case .location: content = AnyView(LocationTimeTab(settings: settings))
         case .calculation: content = AnyView(CalculationTab(settings: settings))
-        case .notifications: content = AnyView(NotificationsTab(settings: settings, audio: audio))
+        case .notifications: content = AnyView(NotificationsTab(settings: settings, audio: audio, notifications: notifications))
         }
         return AnyView(content.frame(width: Self.paneSize.width, height: Self.paneSize.height))
     }

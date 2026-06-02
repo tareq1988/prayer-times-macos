@@ -35,6 +35,56 @@ final class NotificationService: NSObject {
         }
     }
 
+    /// Fire an immediate sample notification so the user can preview the look
+    /// (and confirm permissions). Uses the same wording as a real prayer-entry
+    /// notification and attaches the app logo.
+    func sendSampleNotification() async {
+        // Make sure we're authorized first (no-op prompt if already decided).
+        await requestAuthorization()
+
+        let name = PrayerFormatting.name(.dhuhr)
+        let clock = PrayerFormatting.clock(Date(), in: .current)
+
+        let content = UNMutableNotificationContent()
+        content.title = name
+        content.body = String(localized: "It's time for \(name) (\(clock)).")
+        content.sound = UNNotificationSound(named: UNNotificationSoundName("takbir.caf"))
+        if let attachment = appIconAttachment() {
+            content.attachments = [attachment]
+        }
+
+        let request = UNNotificationRequest(
+            identifier: "SAMPLE-\(UUID().uuidString)",
+            content: content,
+            trigger: nil   // deliver immediately
+        )
+        do {
+            try await center.add(request)
+            log.notice("Sent sample notification")
+        } catch {
+            log.error("Sample notification failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Wrap the bundled logo PNG as a notification attachment. We copy it to a
+    /// temp file because the notification center takes ownership of the URL it's
+    /// given (it can't move a file out of the app bundle).
+    private func appIconAttachment() -> UNNotificationAttachment? {
+        guard let bundled = Bundle.main.url(forResource: "notification-icon", withExtension: "png") else {
+            log.error("notification-icon.png not bundled")
+            return nil
+        }
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("pt-icon-\(UUID().uuidString).png")
+        do {
+            try FileManager.default.copyItem(at: bundled, to: url)
+            return try UNNotificationAttachment(identifier: "appIcon", url: url, options: nil)
+        } catch {
+            log.error("Icon attachment failed: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
+
     /// Replace all scheduled notifications with a fresh set for the given days.
     func reschedule(today: PrayerTimes, tomorrow: PrayerTimes, settings: AppSettings,
                     timeZone: TimeZone, now: Date) {

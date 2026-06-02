@@ -18,7 +18,7 @@ struct PrayerTimesApp: App {
         let notifications = NotificationService(audio: audio)
         _settings = State(initialValue: settings)
         _clock = State(initialValue: PrayerClock(settings: settings, notifications: notifications, audio: audio))
-        settingsWindow = SettingsWindowManager(settings: settings, audio: audio, updates: updates)
+        settingsWindow = SettingsWindowManager(settings: settings, audio: audio, updates: updates, notifications: notifications)
 
         // Mirror the persisted preference into Sparkle.
         updates.automaticallyChecksForUpdates = settings.settings.autoUpdateEnabled

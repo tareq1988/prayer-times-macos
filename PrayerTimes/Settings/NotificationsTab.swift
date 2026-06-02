@@ -8,11 +8,17 @@ import PrayerKit
 struct NotificationsTab: View {
     @Bindable var settings: SettingsStore
     let audio: AudioService
+    let notifications: NotificationService
 
     var body: some View {
         Form {
             Section {
                 Toggle("Enable notifications", isOn: $settings.settings.masterNotificationsEnabled)
+                Button {
+                    Task { await notifications.sendSampleNotification() }
+                } label: {
+                    Label("Send a sample notification", systemImage: "bell.badge")
+                }
             }
 
             ForEach(Prayer.allCases, id: \.self) { prayer in

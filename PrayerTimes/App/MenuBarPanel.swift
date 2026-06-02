@@ -41,7 +41,7 @@ struct MenuBarPanel: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: PrayerFormatting.icon(next.prayer))
                         .font(.title3)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.brand)
                         .imageScale(.large)
                     VStack(alignment: .leading, spacing: 0) {
                         Text(PrayerFormatting.name(next.prayer))
@@ -54,7 +54,7 @@ struct MenuBarPanel: View {
                     Spacer()
                     Text(PrayerFormatting.clock(next.time, in: clock.timeZone))
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color.brand)
                         .monospacedDigit()
                 }
             }
@@ -80,7 +80,7 @@ struct MenuBarPanel: View {
             Image(systemName: PrayerFormatting.icon(prayer))
                 .font(.system(size: 13))
                 .frame(width: 18)
-                .foregroundStyle(isNext ? Color.accentColor : .secondary)
+                .foregroundStyle(isNext ? Color.brand : .secondary)
 
             Text(PrayerFormatting.name(prayer))
                 .fontWeight(isNext ? .semibold : .regular)
@@ -100,21 +100,21 @@ struct MenuBarPanel: View {
                     .monospacedDigit()
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.accentColor.opacity(0.18)))
-                    .foregroundStyle(Color.accentColor)
+                    .background(Capsule().fill(Color.brand.opacity(0.18)))
+                    .foregroundStyle(Color.brand)
             }
 
             Text(PrayerFormatting.clock(time, in: clock.timeZone))
                 .monospacedDigit()
                 .fontWeight(isNext ? .semibold : .regular)
         }
-        .foregroundStyle(isNext ? Color.accentColor : .primary)
+        .foregroundStyle(isNext ? Color.brand : .primary)
         .opacity(isPast ? 0.45 : 1)
         .padding(.vertical, 6)
         .padding(.horizontal, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isNext ? Color.accentColor.opacity(0.14) : .clear)
+                .fill(isNext ? Color.brand.opacity(0.14) : .clear)
         )
     }
 
@@ -128,9 +128,9 @@ struct MenuBarPanel: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Color.accentColor)
+        .foregroundStyle(Color.brand)
         .background(
-            RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.14))
+            RoundedRectangle(cornerRadius: 8).fill(Color.brand.opacity(0.14))
         )
     }
 
