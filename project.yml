@@ -42,6 +42,7 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         # Local dev signs ad-hoc; CI overrides with Developer ID (spec §13).
         CODE_SIGN_STYLE: Automatic
