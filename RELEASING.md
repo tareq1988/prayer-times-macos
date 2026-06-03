@@ -42,10 +42,11 @@ Run Sparkle's `generate_keys` once (from a Sparkle release tarball):
 - `SUFeedURL` → your appcast URL.
 
 ### 6. Homebrew tap
-- Create a tap repo `github.com/tareq1988/homebrew-tap`.
-- Copy `Casks/prayer-times.rb` there and fill `url` / `homepage`.
-- Each release prints the new `version` + `sha256` (workflow log) — bump the cask
-  (or automate with a PAT).
+- The cask lives **only** in the tap repo `github.com/tareq1988/homebrew-tap`
+  (`Casks/prayer-times.rb`) — it is the single source of truth; there is no copy
+  in this repo.
+- `scripts/release-local.sh` clones the tap and pushes the `version` + `sha256`
+  bump automatically. The CI workflow prints the values for a manual/PAT bump.
 
 ## Cutting a release
 ```bash

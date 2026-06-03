@@ -64,28 +64,35 @@ git add docs/appcast.xml
 git commit -m "chore(release): appcast for $TAG" || echo "  (no appcast change)"
 git push origin main
 
-# 6. Publish the GitHub Release (creates the tag at current main).
-gh release create "$TAG" "$ZIP" \
-  --title "Prayer Times $TAG" \
-  --generate-notes \
-  --target main
+# 6. Publish the GitHub Release (creates the tag at current main). Use the
+# matching CHANGELOG.md section as the release notes when present; otherwise let
+# GitHub auto-generate from commits.
+NOTES_FILE="$(mktemp)"
+if [[ -f CHANGELOG.md ]] && awk -v v="$VERSION" '
+    $0 ~ "^## \\[" v "\\]" {grab=1; next}
+    grab && /^## \[/ {exit}
+    grab && (NF || body) {body=1; print}
+  ' CHANGELOG.md > "$NOTES_FILE" && [[ -s "$NOTES_FILE" ]]; then
+  gh release create "$TAG" "$ZIP" --title "Prayer Times $TAG" --notes-file "$NOTES_FILE" --target main
+else
+  gh release create "$TAG" "$ZIP" --title "Prayer Times $TAG" --generate-notes --target main
+fi
+rm -f "$NOTES_FILE"
 
 echo "✓ Released: https://github.com/$REPO/releases/tag/$TAG"
 
-# 7. Bump the Homebrew cask in the tap (version + sha256).
+# 7. Bump the Homebrew cask in the tap (version + sha256). The tap is the single
+# source of truth — there is no in-repo copy to keep in sync.
 TAP_REPO="tareq1988/homebrew-tap"
 SHA=$(shasum -a 256 "$ZIP" | cut -d' ' -f1)
 TAP_DIR="$(mktemp -d)/homebrew-tap"
 if git clone -q "git@github.com:$TAP_REPO.git" "$TAP_DIR" 2>/dev/null; then
   CASK="$TAP_DIR/Casks/prayer-times.rb"
   sed -i '' -E "s/version \"[^\"]+\"/version \"$VERSION\"/; s/sha256 \"[^\"]+\"/sha256 \"$SHA\"/" "$CASK"
-  cp "$CASK" Casks/prayer-times.rb   # keep the in-repo reference copy in sync
   ( cd "$TAP_DIR" && git add Casks/prayer-times.rb \
       && git commit -q -m "chore: bump prayer-times to $VERSION" \
       && git push -q origin main )
-  git add Casks/prayer-times.rb && git commit -q -m "chore(release): sync cask to $VERSION" || true
-  git push origin main || true
-  echo "✓ Homebrew cask bumped to $VERSION"
+  echo "✓ Homebrew cask bumped to $VERSION in $TAP_REPO"
 else
-  echo "⚠ Could not clone $TAP_REPO; bump Casks/prayer-times.rb there manually (sha256: $SHA)"
+  echo "⚠ Could not clone $TAP_REPO; bump its Casks/prayer-times.rb manually (version: $VERSION, sha256: $SHA)"
 fi
