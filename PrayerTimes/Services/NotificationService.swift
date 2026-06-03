@@ -2,6 +2,7 @@ import Foundation
 import UserNotifications
 import PrayerKit
 import OSLog
+import Observation
 
 /// Schedules local notifications for the rolling today + tomorrow window
 /// (spec §7.3, §7.4, §9): a prayer-entry notification, an optional early
@@ -10,10 +11,16 @@ import OSLog
 /// rather than duplicates. Also acts as the notification-center delegate so
 /// banners show while the agent is running and the Stop-Adhan action works.
 @MainActor
+@Observable
 final class NotificationService: NSObject {
-    private let audio: AudioService
-    private let center = UNUserNotificationCenter.current()
-    private let log = Logger(subsystem: "co.tareq.prayertimes", category: "notifications")
+    @ObservationIgnored private let audio: AudioService
+    @ObservationIgnored private let center = UNUserNotificationCenter.current()
+    @ObservationIgnored private let log = Logger(subsystem: "co.tareq.prayertimes", category: "notifications")
+
+    /// The current system authorization, mirrored so the UI can warn when
+    /// notifications are off. Refreshed on launch, after a request, and when the
+    /// Notifications tab appears.
+    private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
 
     private nonisolated static let adhanCategoryID = "PRAYER_ADHAN"
     private nonisolated static let stopAdhanActionID = "STOP_ADHAN"
@@ -33,6 +40,12 @@ final class NotificationService: NSObject {
         } catch {
             log.error("Authorization error: \(error.localizedDescription, privacy: .public)")
         }
+        await refreshAuthorizationStatus()
+    }
+
+    /// Re-read the system authorization status into `authorizationStatus`.
+    func refreshAuthorizationStatus() async {
+        authorizationStatus = await center.notificationSettings().authorizationStatus
     }
 
     /// Fire an immediate sample notification so the user can preview the look
@@ -147,9 +160,15 @@ final class NotificationService: NSObject {
         }
 
         for request in requests {
-            center.add(request)
+            let id = request.identifier
+            center.add(request) { [log] error in
+                if let error {
+                    log.error("Schedule failed \(id, privacy: .public): \(error.localizedDescription, privacy: .public)")
+                }
+            }
         }
-        log.notice("Scheduled \(requests.count) notifications")
+        let authState = settings.masterNotificationsEnabled ? "on" : "off"
+        log.notice("Scheduled \(requests.count) notifications (master=\(authState, privacy: .public))")
     }
 
     // MARK: Building requests
