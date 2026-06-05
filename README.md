@@ -56,11 +56,11 @@ astronomical calculator. See [`CLAUDE.md`](CLAUDE.md) for the full layout.
 
 ```sh
 brew install xcodegen        # one-time
-./run.sh                     # build + relaunch (ad-hoc signed for local dev)
+./scripts/run.sh             # build + install into /Applications + relaunch (ad-hoc signed)
 cd PrayerKit && swift test   # run the calculation-core tests
 ```
 
-`run.sh` regenerates the Xcode project when sources change. Or open the generated
+`scripts/run.sh` regenerates the Xcode project when sources change. Or open the generated
 `PrayerTimes.xcodeproj` in Xcode and hit Run.
 
 ## Releasing

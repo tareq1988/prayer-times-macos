@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 #
-# Build, kill, and relaunch the Prayer Times menu bar app.
+# Build, install into /Applications, and relaunch the Prayer Times menu bar app.
 #
 # Usage:
-#   ./run.sh              # regenerate (if needed) + build + relaunch
-#   ./run.sh -g           # force `xcodegen generate` first
-#   ./run.sh -r           # build Release instead of Debug
-#   ./run.sh -q           # just quit the running app (no build)
+#   ./scripts/run.sh      # regenerate (if needed) + build + install + relaunch
+#   ./scripts/run.sh -g   # force `xcodegen generate` first
+#   ./scripts/run.sh -r   # build Release instead of Debug
+#   ./scripts/run.sh -q   # just quit the running app (no build)
 #
 set -euo pipefail
 
-cd "$(dirname "$0")"
+# Operate from the repo root (this script lives in scripts/).
+cd "$(dirname "$0")/.."
 
+INSTALL_DIR="/Applications"
 PROJECT="PrayerTimes.xcodeproj"
 SCHEME="PrayerTimes"
 CONFIG="Debug"
@@ -90,8 +92,17 @@ fi
 
 kill_app
 
-echo "→ Launching: $APP"
-open "$APP"
+# Install into /Applications by replacing any existing copy, so the app under
+# test is the same bundle a user would run (correct identity, Launch Services
+# registration, and self-update path).
+APP_NAME="$(basename "$APP")"
+INSTALLED="$INSTALL_DIR/$APP_NAME"
+echo "→ Installing into $INSTALL_DIR (replacing existing)…"
+rm -rf "$INSTALLED"
+cp -R "$APP" "$INSTALLED"
+
+echo "→ Launching: $INSTALLED"
+open "$INSTALLED"
 sleep 1
 if pgrep -f "$APP_PROCESS" >/dev/null; then
   echo "✓ Running. Look for the item in your menu bar."
