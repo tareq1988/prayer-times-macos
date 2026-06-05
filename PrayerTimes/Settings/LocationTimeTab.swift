@@ -99,10 +99,7 @@ struct LocationTimeTab: View {
     private var locationModeBinding: Binding<LocationMode> {
         Binding(
             get: { settings.settings.locationMode },
-            set: { mode in
-                settings.settings.locationMode = mode
-                if mode == .automatic { Task { await settings.detectLocation() } }
-            }
+            set: { settings.setLocationMode($0) }
         )
     }
 

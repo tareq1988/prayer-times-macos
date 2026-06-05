@@ -23,6 +23,11 @@ final class SettingsStore {
     @ObservationIgnored private let key = "appSettings.v1"
     @ObservationIgnored private let location: LocationService
 
+    /// True when no settings were persisted yet (a genuine first launch). Lets the
+    /// launch path prompt for location permission in automatic mode exactly once,
+    /// without re-prompting on every subsequent launch.
+    @ObservationIgnored private let isFirstRun: Bool
+
     // Runtime auto-detect state (not persisted).
     private(set) var detectedCoordinates: Coordinates?
     private(set) var detectedCountryCode: String?
@@ -39,7 +44,9 @@ final class SettingsStore {
             ?? Self.appGroupSuite.flatMap { UserDefaults(suiteName: $0) }
             ?? .standard
         self.defaults = resolved
-        self.settings = Self.load(from: resolved, key: key) ?? Self.firstRunDefaults
+        let loaded = Self.load(from: resolved, key: key)
+        self.isFirstRun = (loaded == nil)
+        self.settings = loaded ?? Self.firstRunDefaults
         migrateHighLatitudeRuleIfNeeded()
         migrateMenuBarStyleIfNeeded()
     }
@@ -96,15 +103,34 @@ final class SettingsStore {
 
     // MARK: Auto-detect (CoreLocation)
 
-    /// On launch, refresh the location only if the user opted into automatic
-    /// behavior *and* permission was already granted — never prompt at startup.
-    /// (The prompt appears only when the user explicitly enables Automatic /
-    /// auto-detect or taps "Detect my location".)
+    /// On launch, detect the location when the user is in automatic mode. On a
+    /// genuine first launch we *do* prompt for permission (the new default is
+    /// automatic, so the app should work out of the box). On every later launch we
+    /// only refresh silently when permission was already granted — never re-prompt
+    /// (a user who declined or switched to Manual is left alone).
     func detectLocationIfNeeded() async {
         let wantsAuto = settings.locationMode == .automatic || settings.autoDetectMethod
+        guard wantsAuto else { return }
         let authorized = location.authorization == .authorized || location.authorization == .authorizedAlways
-        guard wantsAuto, authorized else { return }
+        guard authorized || isFirstRun else { return }
         await detectLocation()
+    }
+
+    /// Switch the location mode. Crucially, going Automatic → Manual seeds the
+    /// editable coordinates from the *currently resolved* location (the detected
+    /// position while still in automatic mode), so the manual fields continue from
+    /// where automatic left off instead of snapping back to the stale stored value
+    /// (which, on a fresh install, is the Istanbul default — a user in Dhaka would
+    /// otherwise flip to Manual and get Istanbul). Capture before changing the mode:
+    /// `resolvedCoordinates` only returns the detected value while still automatic.
+    func setLocationMode(_ mode: LocationMode) {
+        if mode == .manual {
+            settings.manualCoordinates = resolvedCoordinates
+        }
+        settings.locationMode = mode
+        if mode == .automatic {
+            Task { await detectLocation() }
+        }
     }
 
     /// Detect location once and (if auto-detect-method is on) pick the method
@@ -236,14 +262,21 @@ final class SettingsStore {
 
     static let defaultCoordinates = Coordinates(latitude: 41.0082, longitude: 28.9784)
 
-    /// First-run configuration: matches the M2 hardcoded behavior (Istanbul /
-    /// Diyanet) so the app looks identical until the user changes anything.
+    /// First-run configuration: location-aware out of the box. Automatic mode
+    /// (prompts + detects on first launch — see `detectLocationIfNeeded`), the
+    /// system timezone so the clock is the user's *own* zone even before/​without
+    /// a location fix, and the global MWL method with auto-detect on so it tracks
+    /// the detected country. The Istanbul `defaultCoordinates` survive only as the
+    /// fallback when location permission is denied. (Previously this shipped a
+    /// hardcoded manual Istanbul/Diyanet, so a first-time user in Dhaka got
+    /// Istanbul times.)
     static var firstRunDefaults: AppSettings {
         AppSettings(
-            methodID: "diyanet",
-            locationMode: .manual,
+            methodID: "mwl",
+            locationMode: .automatic,
             manualCoordinates: defaultCoordinates,
-            timeZoneMode: .explicit(identifier: "Europe/Istanbul")
+            timeZoneMode: .system,
+            autoDetectMethod: true
         )
     }
 }
