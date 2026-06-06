@@ -39,6 +39,20 @@ final class AdapterTests: XCTestCase {
         XCTAssertEqual(p.manualOffsets[.isha], 2)
     }
 
+    func testKemenagCalibratedParameters() {
+        // Kemenag (Indonesia): Fajr 20°, Isha 18° + ihtiyati (see
+        // KemenagGoldenTableTests).
+        let p = KemenagAdapter().resolve(for: anywhere)
+        XCTAssertEqual(p.fajrAngle, 20.0)
+        XCTAssertEqual(p.ishaAngle, 18.0)
+        XCTAssertEqual(p.asrShadowFactor, 1.0)
+        XCTAssertEqual(p.dhuhrOffsetMinutes, 3)
+        XCTAssertEqual(p.asrOffsetMinutes, 2)
+        XCTAssertEqual(p.manualOffsets[.fajr], 2)
+        XCTAssertEqual(p.manualOffsets[.maghrib], 3)
+        XCTAssertEqual(p.manualOffsets[.isha], 2)
+    }
+
     func testUmmAlQuraUsesFixedIsha() {
         let p = UmmAlQuraAdapter().resolve(for: anywhere)
         XCTAssertEqual(p.fajrAngle, 18.5)
@@ -98,12 +112,13 @@ final class AdapterTests: XCTestCase {
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "SA"), "ummalqura")
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "PK"), "karachi")
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "MY"), "jakim")
+        XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "ID"), "kemenag")
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "ZZ"), "mwl")    // unknown → MWL
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: nil), "mwl")
     }
 
     func testBuiltInExcludesManual() {
         XCTAssertFalse(MethodRegistry.builtIn.contains { $0.id == "manual" })
-        XCTAssertEqual(MethodRegistry.builtIn.count, 8)
+        XCTAssertEqual(MethodRegistry.builtIn.count, 9)
     }
 }

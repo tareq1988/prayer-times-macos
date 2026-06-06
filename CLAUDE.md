@@ -71,6 +71,11 @@ the menu bar, not a window or Dock icon.
   plus *ihtiyati* safety minutes (Dhuhr +3, Asr +2, Maghrib +2, Isha +2). These
   reproduce e-Solat to ±1 min year-round (`JAKIMGoldenTableTests`). Do not
   "restore" 20°.
+- **Kemenag (Indonesia)** uses Fajr **20°**, Isha **18°**, Shafiʿi Asr, plus
+  *ihtiyati* minutes (Subuh +2, Dzuhur +3, Ashar +2, Maghrib +3, Isya +2 — the
+  Dzuhur/Maghrib +3 absorbs Kemenag's round-up vs the engine's round-to-nearest).
+  Calibrated against Kemenag's KOTA JAKARTA tables to ±1 min year-round
+  (`KemenagGoldenTableTests`). Kemenag also defines Imsak = Subuh − 10, not shown.
 - **The engine rounds each instant to the nearest minute** (not truncates).
   Published tables are minute-granular and round; truncating displayed every time
   up to ~1 min early (e.g. JAKIM Dhuhr 13:14:53 shown as 1:14 instead of 1:15).

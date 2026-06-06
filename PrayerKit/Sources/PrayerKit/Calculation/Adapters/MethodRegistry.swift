@@ -17,6 +17,7 @@ public enum MethodRegistry {
             EgyptianAdapter(),
             KarachiAdapter(),
             JAKIMAdapter(),
+            KemenagAdapter(),
             MoonsightingCommitteeAdapter()
         ]
     }
@@ -61,6 +62,8 @@ public enum MethodRegistry {
         // Malaysia → JAKIM, calibrated to e-Solat. Neighbours (Singapore/MUIS,
         // Brunei) run their own authorities and aren't mapped here.
         "MY": "jakim",
+        // Indonesia → Kemenag (Kementerian Agama RI).
+        "ID": "kemenag",
         // GB + Northern Europe lean MWL with angle-based high-lat (MWL's default).
         "GB": "mwl", "IE": "mwl", "NO": "mwl", "SE": "mwl", "FI": "mwl",
         "DK": "mwl", "IS": "mwl"
