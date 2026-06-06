@@ -65,6 +65,12 @@ the menu bar, not a window or Dock icon.
 - District reference coordinates for the gate were calibrated to the tables
   (e.g. Başakşehir latitude 41.06). `DiyanetCalibration` is the dev-only
   re-tuning harness (skips when `data/` is absent).
+- **JAKIM (Malaysia) is NOT the "Fajr 20°/Isha 18°" preset** that other apps
+  label JAKIM — that runs Fajr ~11 min early against the official tables. JAKIM's
+  e-Solat output (zone WLY01, Kuala Lumpur) behaves as Fajr **17.5°**, Isha 18°,
+  plus *ihtiyati* safety minutes (Dhuhr +3, Asr +2, Maghrib +2, Isha +2). These
+  reproduce e-Solat to ±1 min year-round (`JAKIMGoldenTableTests`). Do not
+  "restore" 20°.
 - **The engine rounds each instant to the nearest minute** (not truncates).
   Published tables are minute-granular and round; truncating displayed every time
   up to ~1 min early (e.g. JAKIM Dhuhr 13:14:53 shown as 1:14 instead of 1:15).

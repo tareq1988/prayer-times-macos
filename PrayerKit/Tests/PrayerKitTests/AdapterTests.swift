@@ -26,6 +26,19 @@ final class AdapterTests: XCTestCase {
         XCTAssertEqual(KarachiAdapter().resolve(for: anywhere).ishaAngle, 18.0)
     }
 
+    func testJAKIMCalibratedParameters() {
+        // Calibrated to JAKIM e-Solat output, not the 20°/18° preset (see
+        // JAKIMGoldenTableTests). Includes JAKIM's ihtiyati safety minutes.
+        let p = JAKIMAdapter().resolve(for: anywhere)
+        XCTAssertEqual(p.fajrAngle, 17.5)
+        XCTAssertEqual(p.ishaAngle, 18.0)
+        XCTAssertEqual(p.asrShadowFactor, 1.0)
+        XCTAssertEqual(p.dhuhrOffsetMinutes, 3)
+        XCTAssertEqual(p.asrOffsetMinutes, 2)
+        XCTAssertEqual(p.manualOffsets[.maghrib], 2)
+        XCTAssertEqual(p.manualOffsets[.isha], 2)
+    }
+
     func testUmmAlQuraUsesFixedIsha() {
         let p = UmmAlQuraAdapter().resolve(for: anywhere)
         XCTAssertEqual(p.fajrAngle, 18.5)
@@ -84,12 +97,13 @@ final class AdapterTests: XCTestCase {
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "us"), "isna")  // case-insensitive
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "SA"), "ummalqura")
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "PK"), "karachi")
+        XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "MY"), "jakim")
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: "ZZ"), "mwl")    // unknown → MWL
         XCTAssertEqual(MethodRegistry.methodID(forCountryCode: nil), "mwl")
     }
 
     func testBuiltInExcludesManual() {
         XCTAssertFalse(MethodRegistry.builtIn.contains { $0.id == "manual" })
-        XCTAssertEqual(MethodRegistry.builtIn.count, 7)
+        XCTAssertEqual(MethodRegistry.builtIn.count, 8)
     }
 }
