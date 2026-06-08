@@ -3,12 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prayer Times — macOS menu bar app</title>
-  <meta name="description" content="A native, free macOS menu bar app for Islamic prayer times.">
-  <meta property="og:title" content="Prayer Times">
-  <meta property="og:description" content="A native, free macOS menu bar app for Islamic prayer times.">
-  <meta property="og:image" content="https://tareq1988.github.io/prayer-times-macos/screenshot.png">
+  <title>Prayer Times for macOS — Free Menu Bar Adhan &amp; Islamic Prayer Times App</title>
+  <meta name="description" content="Prayer Times is a free, native macOS menu bar app for Islamic prayer times (Salah / Namaz). Accurate Adhan/Azan notifications, a live countdown to the next prayer, and 8 calculation methods including Diyanet, ISNA, Umm al-Qura, Muslim World League, Karachi and Egyptian. Open source, no ads, no tracking.">
+  <meta name="keywords" content="prayer times mac, macOS prayer times app, menu bar prayer times, Adhan app Mac, Azan app, Islamic prayer times, Salah times, Namaz times macOS, Muslim prayer reminder, Diyanet, ISNA, Umm al-Qura, free prayer times app">
+  <meta name="author" content="Tareq Hasan">
+  <link rel="canonical" href="https://tareq1988.github.io/prayer-times-macos/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Prayer Times for macOS">
+  <meta property="og:url" content="https://tareq1988.github.io/prayer-times-macos/">
+  <meta property="og:title" content="Prayer Times for macOS — Free Menu Bar Adhan &amp; Islamic Prayer Times App">
+  <meta property="og:description" content="A free, native macOS menu bar app for Islamic prayer times. Adhan/Azan notifications, a live countdown to the next Salah, and 8 calculation methods. Open source, no ads, no tracking.">
+  <meta property="og:image" content="https://tareq1988.github.io/prayer-times-macos/images/screenshot.png">
+  <meta property="og:image:alt" content="Prayer Times macOS menu bar panel showing today's prayer times">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Prayer Times for macOS — Free Menu Bar Adhan &amp; Islamic Prayer Times App">
+  <meta name="twitter:description" content="A free, native macOS menu bar app for Islamic prayer times. Adhan/Azan notifications, a live countdown to the next Salah, and 8 calculation methods.">
+  <meta name="twitter:image" content="https://tareq1988.github.io/prayer-times-macos/images/screenshot.png">
+
   <link rel="icon" href="icon.png">
+
+  <!-- Structured data: rich results for software + FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Prayer Times",
+        "operatingSystem": "macOS 14.0",
+        "applicationCategory": "UtilitiesApplication",
+        "description": "A free, native macOS menu bar app for Islamic prayer times with Adhan/Azan notifications, a live countdown to the next prayer, and 8 calculation methods (Diyanet, ISNA, Umm al-Qura, Muslim World League, Karachi, Egyptian, Moonsighting, Manual).",
+        "url": "https://tareq1988.github.io/prayer-times-macos/",
+        "downloadUrl": "https://github.com/tareq1988/prayer-times-macos/releases/latest",
+        "softwareVersion": "0.4.0",
+        "image": "https://tareq1988.github.io/prayer-times-macos/images/screenshot.png",
+        "license": "https://github.com/tareq1988/prayer-times-macos/blob/main/LICENSE",
+        "author": { "@type": "Person", "name": "Tareq Hasan" },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is Prayer Times for macOS free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Prayer Times is completely free and open source under the MIT license — no subscription, no ads, and no account." }
+          },
+          {
+            "@type": "Question",
+            "name": "Which prayer time calculation methods are supported?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Diyanet (Turkey), Muslim World League, ISNA (North America), Umm al-Qura (Saudi Arabia), Egyptian, University of Islamic Sciences Karachi (Pakistan), Moonsighting Committee, and a fully Manual method — with Standard or Hanafi Asr and high-latitude rules." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the app play the Adhan (Azan)?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The full Adhan (Makkah or Madinah) plays at prayer time with a Stop control, alongside per-prayer notifications." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Prayer Times work offline and respect privacy?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Prayer times are computed on-device from your coordinates with no internet connection required, and there is no tracking, telemetry, or ads." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <style>
     :root {
       color-scheme: light dark;
@@ -97,8 +161,8 @@
   <div class="wrap">
     <header>
       <img class="logo" src="icon.png" alt="Prayer Times icon">
-      <h1>Prayer Times</h1>
-      <p class="tagline">A native, free macOS menu bar app for Islamic prayer times.</p>
+      <h1>Prayer Times for macOS</h1>
+      <p class="tagline">A free, native macOS menu bar app for Islamic prayer times — Adhan notifications &amp; a live countdown to the next Salah.</p>
       <div class="cta">
         <a class="btn" href="https://github.com/tareq1988/prayer-times-macos/releases/latest">↓ Download for macOS</a>
         <a class="btn secondary" href="https://github.com/tareq1988/prayer-times-macos">View on GitHub</a>
@@ -107,7 +171,7 @@
     </header>
 
     <div class="shot">
-      <img src="screenshot.png" alt="Prayer Times menu bar panel showing today's prayer times">
+      <img src="images/screenshot.png" alt="Prayer Times menu bar panel showing today's prayer times">
     </div>
 
     <section>
@@ -128,11 +192,39 @@
       <pre><code>brew install --cask tareq1988/tap/prayer-times</code></pre>
       <p>Or <a href="https://github.com/tareq1988/prayer-times-macos/releases/latest">download the latest <code>.zip</code></a> and drag it to Applications.</p>
       <p class="note">
-        The current builds are ad-hoc signed (not yet notarized), so macOS Gatekeeper
-        blocks them on first launch. To open it, run<br>
+        <strong>First launch (unsigned build).</strong> The current builds are ad-hoc
+        signed (not yet notarized), so on first launch macOS shows
+        <em>"Prayer Times" Not Opened</em> and blocks it. To open it, go to
+        <strong>System Settings → Privacy &amp; Security</strong> and click
+        <strong>Open Anyway</strong>, then <strong>Open</strong> in the confirmation
+        dialog. (Or run<br>
         <code>xattr -dr com.apple.quarantine "/Applications/Prayer Times.app"</code><br>
-        or go to <strong>System Settings → Privacy &amp; Security → Open Anyway</strong>.
+        in Terminal.)
       </p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:1rem">
+        <img src="images/error-not-opened.png" alt="macOS Gatekeeper alert: Prayer Times Not Opened because Apple could not verify it is free of malware" style="width:100%;height:auto;border-radius:12px;border:1px solid var(--border)">
+        <img src="images/settings-privacy.png" alt="System Settings Privacy &amp; Security pane with the Open Anyway button for Prayer Times" style="width:100%;height:auto;border-radius:12px;border:1px solid var(--border)">
+      </div>
+    </section>
+
+    <section>
+      <h2>Frequently asked questions</h2>
+      <div class="feat" style="margin-bottom:1rem">
+        <h3>Is Prayer Times free?</h3>
+        <p>Yes — completely free and open source under the MIT license. No subscription, no ads, no account, no tracking.</p>
+      </div>
+      <div class="feat" style="margin-bottom:1rem">
+        <h3>Which calculation methods are supported?</h3>
+        <p>Diyanet (Turkey), Muslim World League, ISNA (North America), Umm al-Qura (Saudi Arabia), Egyptian, University of Islamic Sciences Karachi (Pakistan), Moonsighting Committee, and a fully Manual method — with Standard or Hanafi Asr and high-latitude rules.</p>
+      </div>
+      <div class="feat" style="margin-bottom:1rem">
+        <h3>Does it play the Adhan (Azan)?</h3>
+        <p>Yes. The full Adhan (Makkah or Madinah) plays at prayer time with a Stop control, alongside lighter per-prayer notification sounds.</p>
+      </div>
+      <div class="feat">
+        <h3>Does it work offline and respect privacy?</h3>
+        <p>Yes. Prayer times for your location (Salah / Namaz) are computed on-device from your coordinates — no internet connection, no telemetry, no ads.</p>
+      </div>
     </section>
 
     <footer>
