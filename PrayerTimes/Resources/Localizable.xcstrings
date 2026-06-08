@@ -34,7 +34,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ %2$@ বাকি"
+            "value": "%1$@ %2$@ পর"
           }
         },
         "tr": {
@@ -2455,7 +2455,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ বাকি"
+            "value": "%@ পর"
           }
         },
         "tr": {
