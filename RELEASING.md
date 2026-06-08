@@ -43,7 +43,7 @@ gh workflow run release.yml -f tag=v0.5.1
 | EdDSA-sign + regenerate appcast | ✅ (key from keychain) | ✅ (key from `SPARKLE_ED_PRIVATE_KEY`) |
 | Commit `docs/appcast.xml` to `main` | ✅ | ✅ |
 | GitHub Release (zip + CHANGELOG notes) | ✅ | ✅ |
-| Homebrew cask bump | ✅ (SSH to tap) | ✅ (needs `TAP_PUSH_TOKEN`; else prints values) |
+| Homebrew cask bump | ✅ (SSH to tap) | ✅ (needs `TAP_DEPLOY_KEY`; else prints values) |
 
 ## One-time setup
 
@@ -68,8 +68,8 @@ by the local script):
 ### Homebrew tap
 - The cask lives **only** in the tap repo `github.com/tareq1988/homebrew-tap`
   (`Casks/prayer-times.rb`) — single source of truth, no in-repo copy.
-- Local: pushes the `version` + `sha256` bump over SSH automatically.
-- CI: needs `TAP_PUSH_TOKEN` (below) to push the same bump.
+- Local: pushes the `version` + `sha256` bump over your SSH key automatically.
+- CI: pushes the same bump over a `TAP_DEPLOY_KEY` deploy key (below).
 
 ### CI secrets (only for the GitHub Actions path)
 Settings → Secrets and variables → Actions:
@@ -77,7 +77,16 @@ Settings → Secrets and variables → Actions:
 | Secret | Purpose |
 |---|---|
 | `SPARKLE_ED_PRIVATE_KEY` | Exported Sparkle EdDSA private key — EdDSA-signs the update. **Required** for CI. |
-| `TAP_PUSH_TOKEN` | Fine-grained PAT with **contents: write** on `tareq1988/homebrew-tap` — lets CI bump the cask. Optional: without it the run still succeeds and prints the version + sha256 for a manual bump. |
+| `TAP_DEPLOY_KEY` | SSH **private** key of a write **deploy key** on `tareq1988/homebrew-tap` — lets CI bump the cask. Optional: without it the run still succeeds and prints the version + sha256 for a manual bump. |
+
+The deploy key is scoped to the tap repo only (no PAT needed). Recreate it with:
+
+```bash
+ssh-keygen -t ed25519 -f tap_key -N "" -C "prayer-times-ci-cask-bump"
+gh repo deploy-key add tap_key.pub --repo tareq1988/homebrew-tap --title "CI cask bump" --allow-write
+gh secret set TAP_DEPLOY_KEY < tap_key
+rm -f tap_key tap_key.pub
+```
 
 The CI workflow is **`workflow_dispatch` only** — it never runs automatically on a
 tag, so it can't collide with a local release.

@@ -152,23 +152,27 @@ jobs:
           files: ${{ steps.pkg.outputs.zip }}
 
       # Bump the Homebrew cask in the tap repo (tareq1988/homebrew-tap), the single
-      # source of truth — same as scripts/release-local.sh does locally. Needs a
-      # fine-grained PAT with contents:write on the tap, stored as TAP_PUSH_TOKEN
-      # (cross-repo push; the default GITHUB_TOKEN can't reach another repo). If the
-      # secret is absent the run still succeeds and prints the values for a manual bump.
+      # source of truth — same as scripts/release-local.sh does locally. Pushes over
+      # SSH using TAP_DEPLOY_KEY, a write deploy key scoped to the tap repo (the
+      # default GITHUB_TOKEN can't reach another repo). If the secret is absent the
+      # run still succeeds and prints the values for a manual bump.
       - name: Bump Homebrew cask
         env:
-          TAP_PUSH_TOKEN: ${{ secrets.TAP_PUSH_TOKEN }}
+          TAP_DEPLOY_KEY: ${{ secrets.TAP_DEPLOY_KEY }}
           VERSION: ${{ steps.ver.outputs.version }}
           SHA256: ${{ steps.pkg.outputs.sha256 }}
         run: |
           set -euo pipefail
-          if [ -z "${TAP_PUSH_TOKEN:-}" ]; then
-            echo "::notice::TAP_PUSH_TOKEN not set — skipping cask bump. Update Casks/prayer-times.rb manually: version=$VERSION sha256=$SHA256"
+          if [ -z "${TAP_DEPLOY_KEY:-}" ]; then
+            echo "::notice::TAP_DEPLOY_KEY not set — skipping cask bump. Update Casks/prayer-times.rb manually: version=$VERSION sha256=$SHA256"
             exit 0
           fi
+          KEY="$RUNNER_TEMP/tap_deploy_key"
+          install -m 600 /dev/null "$KEY"
+          printf '%s\n' "$TAP_DEPLOY_KEY" > "$KEY"
+          export GIT_SSH_COMMAND="ssh -i $KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
           TAP_DIR="$RUNNER_TEMP/homebrew-tap"
-          git clone -q "https://x-access-token:${TAP_PUSH_TOKEN}@github.com/tareq1988/homebrew-tap.git" "$TAP_DIR"
+          git clone -q git@github.com:tareq1988/homebrew-tap.git "$TAP_DIR"
           CASK="$TAP_DIR/Casks/prayer-times.rb"
           sed -i '' -E "s/version \"[^\"]+\"/version \"$VERSION\"/; s/sha256 \"[^\"]+\"/sha256 \"$SHA256\"/" "$CASK"
           cd "$TAP_DIR"
