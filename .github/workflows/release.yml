@@ -40,8 +40,20 @@ jobs:
           ref: ${{ inputs.tag }}
           fetch-depth: 0
 
-      - name: Select latest Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.app || sudo xcode-select -s /Applications/Xcode.app
+      - name: Select Xcode 26
+        # The app uses macOS 26 SDK APIs (Liquid Glass `.glassEffect`), so it must
+        # build against Xcode 26.x. Runner paths are versioned (e.g. Xcode_26.0.app),
+        # so pick the newest match rather than a bare `Xcode_26.app`.
+        run: |
+          set -euo pipefail
+          XC="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1 || true)"
+          if [ -z "$XC" ]; then
+            echo "::error::No Xcode 26 on this runner (need the macOS 26 SDK). Available:"
+            ls -d /Applications/Xcode_*.app
+            exit 1
+          fi
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
