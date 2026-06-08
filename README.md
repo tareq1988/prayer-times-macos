@@ -1,7 +1,7 @@
 <div align="center">
   <img src="docs/icon.png" width="128" height="128" alt="Prayer Times — macOS menu bar app icon">
   <h1>Prayer Times for macOS</h1>
-  <p><strong>A free, native macOS menu bar app for Islamic prayer times</strong> — accurate Adhan (Azan) notifications, a live countdown to the next Salah, and 8 calculation methods.</p>
+  <p><strong>A free, native macOS menu bar app for Islamic prayer times</strong> — accurate Adhan (Azan) notifications, a live countdown to the next Salah, and 10 calculation methods.</p>
 
   <p>
     <a href="https://github.com/tareq1988/prayer-times-macos/releases/latest"><img src="https://img.shields.io/github/v/release/tareq1988/prayer-times-macos?label=download&color=2e9e4c" alt="Latest release"></a>
@@ -22,7 +22,8 @@ bar, plays the full **Adhan (Azan)**, and fires per-prayer notifications. It is 
 private (no account, no tracking, no ads), and native SwiftUI — not an Electron
 wrapper. It works worldwide with pluggable calculation methods including **Diyanet
 (Turkey), Muslim World League, ISNA (North America), Umm al-Qura (Saudi Arabia),
-Egyptian, Karachi (Pakistan), and Moonsighting Committee**.
+Egyptian, Karachi (Pakistan), Moonsighting Committee, JAKIM (Malaysia), and Kemenag
+(Indonesia)**.
 
 ## Install
 
@@ -54,7 +55,7 @@ Requirements: **macOS 14 Sonoma or later** · Universal (Apple silicon + Intel).
 
 - **Menu bar at a glance** — next prayer + live countdown, with 7 label styles (icon / name / countdown / clock combinations) and a mosque glyph.
 - **Glanceable panel** — today's six times with the next highlighted, iqamah times, date, and the active method/location. Adopts **Liquid Glass** on macOS 26 (Tahoe), with a material fallback on Sonoma/Sequoia.
-- **8 calculation methods** — Diyanet (validated to ±1 minute against official tables), Muslim World League, ISNA, Umm al-Qura, Egyptian, Karachi, Moonsighting, and fully Manual — plus **Standard / Hanafi** Asr (madhab) and **high-latitude** rules.
+- **10 calculation methods** — Diyanet, JAKIM (Malaysia) and Kemenag (Indonesia) each validated to ±1 minute against official tables, plus Muslim World League, ISNA, Umm al-Qura, Egyptian, Karachi, Moonsighting, and fully Manual — with **Standard / Hanafi** Asr (madhab) and **high-latitude** rules.
 - **Adhan & notifications** per prayer: prayer-entry, an early reminder (own lead time), and iqamah — each with its own sound. Plus a "send a sample" preview.
 - **Full Adhan (Azan) playback** (Makkah / Madinah) via in-process audio, with a Stop control (works around the 30-second notification-sound limit).
 - **Location aware** — manual coordinates or one-shot CoreLocation auto-detect, with country → method mapping.
@@ -75,7 +76,9 @@ Requirements: **macOS 14 Sonoma or later** · Universal (Apple silicon + Intel).
 **Which prayer time calculation methods are supported?** Diyanet (Turkey), Muslim
 World League, ISNA (North America), Umm al-Qura (Saudi Arabia), Egyptian General
 Authority, University of Islamic Sciences Karachi (Pakistan), Moonsighting Committee,
-and a fully Manual method — with Standard or Hanafi Asr and high-latitude rules.
+JAKIM (Malaysia), Kemenag (Indonesia), and a fully Manual method — with Standard or
+Hanafi Asr and high-latitude rules. The Diyanet, JAKIM, and Kemenag methods are each
+validated to ±1 minute against their official published tables.
 
 **Does it play the Adhan / Azan?** Yes, the full Adhan (Makkah or Madinah) plays at
 prayer time, with a Stop control. You can also enable lighter per-prayer
@@ -131,6 +134,7 @@ prompt), see [`RELEASING.md`](RELEASING.md).
 ---
 
 <sub>Keywords: macOS prayer times app · menu bar Adhan / Azan app for Mac · Islamic
-Salah / Namaz times · Muslim prayer reminder · Diyanet namaz vakti · free open-source
-prayer time app for macOS · ISNA, Umm al-Qura, Muslim World League, Karachi &
-Egyptian calculation methods.</sub>
+Salah / Namaz times · Muslim prayer reminder · Diyanet namaz vakti · waktu solat
+Malaysia (JAKIM) · jadwal sholat Indonesia (Kemenag) · free open-source prayer time
+app for macOS · ISNA, Umm al-Qura, Muslim World League, Karachi & Egyptian
+calculation methods.</sub>
