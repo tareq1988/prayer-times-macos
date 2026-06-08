@@ -151,11 +151,30 @@ jobs:
           # Pages (docs/appcast.xml on main), not attached to the release.
           files: ${{ steps.pkg.outputs.zip }}
 
-      # The Homebrew cask lives in the tap repo (tareq1988/homebrew-tap) and is the
-      # single source of truth. Cross-repo push needs a PAT; for now print the
-      # values to bump Casks/prayer-times.rb (release-local.sh does this for you).
-      - name: Cask bump (manual)
+      # Bump the Homebrew cask in the tap repo (tareq1988/homebrew-tap), the single
+      # source of truth — same as scripts/release-local.sh does locally. Needs a
+      # fine-grained PAT with contents:write on the tap, stored as TAP_PUSH_TOKEN
+      # (cross-repo push; the default GITHUB_TOKEN can't reach another repo). If the
+      # secret is absent the run still succeeds and prints the values for a manual bump.
+      - name: Bump Homebrew cask
+        env:
+          TAP_PUSH_TOKEN: ${{ secrets.TAP_PUSH_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          SHA256: ${{ steps.pkg.outputs.sha256 }}
         run: |
-          echo "version=${{ steps.ver.outputs.version }}"
-          echo "sha256=${{ steps.pkg.outputs.sha256 }}"
-          echo "Update Casks/prayer-times.rb in tareq1988/homebrew-tap with the values above."
+          set -euo pipefail
+          if [ -z "${TAP_PUSH_TOKEN:-}" ]; then
+            echo "::notice::TAP_PUSH_TOKEN not set — skipping cask bump. Update Casks/prayer-times.rb manually: version=$VERSION sha256=$SHA256"
+            exit 0
+          fi
+          TAP_DIR="$RUNNER_TEMP/homebrew-tap"
+          git clone -q "https://x-access-token:${TAP_PUSH_TOKEN}@github.com/tareq1988/homebrew-tap.git" "$TAP_DIR"
+          CASK="$TAP_DIR/Casks/prayer-times.rb"
+          sed -i '' -E "s/version \"[^\"]+\"/version \"$VERSION\"/; s/sha256 \"[^\"]+\"/sha256 \"$SHA256\"/" "$CASK"
+          cd "$TAP_DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/prayer-times.rb
+          git commit -m "chore: bump prayer-times to $VERSION" || { echo "no cask change"; exit 0; }
+          git push -q origin HEAD:main
+          echo "✓ cask bumped to $VERSION"
