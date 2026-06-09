@@ -23,15 +23,16 @@ struct LocationTimeTab: View {
 
                 if settings.settings.locationMode == .automatic {
                     HStack {
+                        Spacer()
+                        if settings.isDetectingLocation {
+                            ProgressView().controlSize(.small)
+                        }
                         Button {
                             Task { await settings.detectLocation() }
                         } label: {
                             Label("Detect my location", systemImage: "location.fill")
                         }
                         .disabled(settings.isDetectingLocation)
-                        if settings.isDetectingLocation {
-                            ProgressView().controlSize(.small)
-                        }
                     }
                     if let error = settings.locationError {
                         Text(error).font(.caption).foregroundStyle(.red)
@@ -87,7 +88,11 @@ struct LocationTimeTab: View {
 
             Section("Hijri date") {
                 Stepper(value: $settings.settings.hijriDayAdjustment, in: -2...2) {
-                    LabeledContent("Day adjustment", value: hijriAdjustmentLabel)
+                    HStack {
+                        Text("Day adjustment")
+                        Spacer(minLength: 12)
+                        Text(hijriAdjustmentLabel).monospacedDigit().foregroundStyle(.secondary)
+                    }
                 }
                 LabeledContent("Today", value: hijriPreview)
                 Text("Based on the calculated Umm al-Qura calendar. Adjust if your country's date differs (it depends on local moon-sighting).")

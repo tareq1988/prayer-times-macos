@@ -217,7 +217,20 @@ final class SettingsStore {
         ResolvedInputs(
             coordinates: resolvedCoordinates,
             timeZoneID: resolvedTimeZone.identifier,
-            parameters: resolvedParameters()
+            parameters: resolvedParameters(),
+            manual: resolvedManualSchedule
+        )
+    }
+
+    /// The fixed jamaat schedule, present only when the time source is Manual.
+    /// Folded into `resolvedInputs` so the clock recomputes when the user edits a
+    /// jamaat time, toggles the mode, or changes the global azan offset.
+    var resolvedManualSchedule: ManualSchedule? {
+        guard settings.calculationMode == .manual else { return nil }
+        return ManualSchedule(
+            jamaatMinutes: settings.jamaatTimes,
+            azanBeforeJamaat: settings.azanBeforeJamaat,
+            keepWaqt: settings.manualKeepWaqt
         )
     }
 
@@ -287,4 +300,34 @@ struct ResolvedInputs: Equatable {
     var coordinates: Coordinates
     var timeZoneID: String
     var parameters: CalculationParameters
+    /// Present only in Manual (fixed) time-source mode; overlays the five
+    /// obligatory times onto the astronomical computation.
+    var manual: ManualSchedule?
+}
+
+/// The fixed-schedule overlay for Manual time-source mode (design: Calculation
+/// tab). Carries the announced jamaat times and the global azan-before offset.
+struct ManualSchedule: Equatable {
+    /// Jamaat times for the obligatory prayers, as minutes since local midnight.
+    var jamaatMinutes: [Prayer: Int]
+    /// Minutes before the jamaat time that the azan reminder fires.
+    var azanBeforeJamaat: Int
+    /// Keep astronomical Sunrise & windows (always true today — Sunrise has no
+    /// jamaat — but plumbed for future per-event control).
+    var keepWaqt: Bool
+
+    /// Overlay the jamaat times onto an astronomically-computed day: replace each
+    /// obligatory prayer's instant with its jamaat time on the same civil day,
+    /// leaving Sunrise (and any undefined times) untouched.
+    func applied(to base: PrayerTimes, day: Date, timeZone: TimeZone) -> PrayerTimes {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = timeZone
+        let midnight = cal.startOfDay(for: day)
+        var times = base.times
+        for prayer in Prayer.obligatory {
+            guard let minutes = jamaatMinutes[prayer] else { continue }
+            times[prayer] = midnight.addingTimeInterval(TimeInterval(minutes) * 60)
+        }
+        return PrayerTimes(date: base.date, times: times)
+    }
 }

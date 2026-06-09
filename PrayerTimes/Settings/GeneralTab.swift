@@ -10,7 +10,7 @@ struct GeneralTab: View {
 
     var body: some View {
         Form {
-            Section {
+            Section("Startup") {
                 Toggle("Launch at login", isOn: launchAtLoginBinding)
                 if let loginError {
                     Text(loginError)
@@ -36,6 +36,7 @@ struct GeneralTab: View {
 
             Section("Panel") {
                 Toggle("Show Ishraq time", isOn: $settings.settings.showIshraqTime)
+                Toggle("Show Hijri date", isOn: $settings.settings.showHijriDate)
             }
 
             Section("Language") {

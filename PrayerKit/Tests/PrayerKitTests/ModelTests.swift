@@ -67,11 +67,38 @@ final class ModelTests: XCTestCase {
 
     func testDefaultNotificationsMatchProductExamples() {
         let n = AppSettings.defaultNotifications
-        XCTAssertEqual(n[.dhuhr]?.earlyLeadMinutes, 20)
+        XCTAssertEqual(n[.dhuhr]?.earlyLeadMinutesOverride, 20)
         XCTAssertTrue(n[.dhuhr]?.earlyReminderEnabled ?? false)
-        XCTAssertEqual(n[.maghrib]?.earlyLeadMinutes, 10)
-        XCTAssertEqual(n[.sunrise]?.prayerNotificationEnabled, false)
+        XCTAssertEqual(n[.maghrib]?.earlyLeadMinutesOverride, 10)
+        XCTAssertEqual(n[.sunrise]?.notify, false)
         XCTAssertEqual(n.count, 6)
+    }
+
+    func testResolvedNotificationInheritsDefaults() {
+        var s = AppSettings()
+        s.notificationDefaults = NotificationDefaults(
+            sound: .adhanMakkah, earlyReminderMinutes: 10, iqamahOffsetMinutes: 5)
+        // Asr inherits everything (no per-prayer overrides).
+        s.notifications[.asr] = PrayerNotificationConfig(earlyReminderEnabled: true)
+        let asr = s.resolvedNotification(for: .asr)
+        XCTAssertEqual(asr.sound, .adhanMakkah)
+        XCTAssertEqual(asr.earlyLeadMinutes, 10)
+        XCTAssertEqual(asr.iqamahOffsetMinutes, 5)
+        XCTAssertTrue(asr.earlyReminderEnabled)
+
+        // Fajr overrides the sound and lead; iqamah still inherits.
+        s.notifications[.fajr] = PrayerNotificationConfig(
+            earlyReminderEnabled: true, soundOverride: .takbir, earlyLeadMinutesOverride: 30)
+        let fajr = s.resolvedNotification(for: .fajr)
+        XCTAssertEqual(fajr.sound, .takbir)
+        XCTAssertEqual(fajr.earlyLeadMinutes, 30)
+        XCTAssertEqual(fajr.iqamahOffsetMinutes, 5)
+
+        // Sunrise never carries Adhan or iqamah even if asked.
+        s.notifications[.sunrise] = PrayerNotificationConfig(playFullAdhan: true)
+        let sunrise = s.resolvedNotification(for: .sunrise)
+        XCTAssertFalse(sunrise.playFullAdhan)
+        XCTAssertEqual(sunrise.iqamahOffsetMinutes, 0)
     }
 
     func testNotificationSoundMetadata() {

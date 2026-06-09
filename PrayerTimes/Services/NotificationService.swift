@@ -107,19 +107,27 @@ final class NotificationService: NSObject {
             return
         }
 
+        // In Manual (fixed) mode the displayed obligatory time is the jamaat; the
+        // azan reminder fires this many minutes before it (design: Calculation tab).
+        let manual = settings.calculationMode == .manual
+        let azanBefore = manual ? Double(max(0, settings.azanBeforeJamaat)) * 60 : 0
+
         var requests: [UNNotificationRequest] = []
         for day in [today, tomorrow] {
             let dayKey = Self.dayKey(day.date, in: timeZone)
             for (prayer, time) in day.times {
-                let cfg = settings.notifications[prayer] ?? PrayerNotificationConfig()
+                let cfg = settings.resolvedNotification(for: prayer)
 
-                // Prayer-entry notification.
-                if cfg.prayerNotificationEnabled {
+                // Prayer-entry / azan notification. Obligatory prayers in manual
+                // mode fire `azanBefore` ahead of the jamaat time.
+                if cfg.notify {
+                    let fireAt = (manual && prayer.isObligatory)
+                        ? time.addingTimeInterval(-azanBefore) : time
                     let name = PrayerFormatting.name(prayer)
                     let clock = PrayerFormatting.clock(time, in: timeZone)
                     requests.append(contentsOf: request(
                         id: "PRAYER-\(dayKey)-\(prayer.rawValue)",
-                        fireAt: time, now: now,
+                        fireAt: fireAt, now: now,
                         title: name,
                         body: String(localized: "It's time for \(name) (\(clock))."),
                         sound: soundForEntry(cfg),
@@ -137,13 +145,14 @@ final class NotificationService: NSObject {
                         fireAt: early, now: now,
                         title: String(localized: "\(name) in \(cfg.earlyLeadMinutes) min"),
                         body: String(localized: "\(name) is at \(clock)."),
-                        sound: notificationSound(cfg.earlySound),
+                        sound: .default,
                         categoryID: nil
                     ))
                 }
 
-                // Iqamah notification (obligatory prayers only).
-                if prayer.isObligatory, cfg.iqamahOffsetMinutes > 0, cfg.iqamahNotificationEnabled {
+                // Iqamah notification (obligatory prayers, calculated mode only —
+                // in manual mode the displayed time already is the jamaat).
+                if prayer.isObligatory, !manual, cfg.iqamahOffsetMinutes > 0 {
                     let iqamah = time.addingTimeInterval(Double(cfg.iqamahOffsetMinutes) * 60)
                     let name = PrayerFormatting.name(prayer)
                     let clock = PrayerFormatting.clock(iqamah, in: timeZone)
@@ -152,7 +161,7 @@ final class NotificationService: NSObject {
                         fireAt: iqamah, now: now,
                         title: String(localized: "Iqamah — \(name)"),
                         body: String(localized: "Congregation at \(clock)."),
-                        sound: notificationSound(cfg.iqamahSound),
+                        sound: .default,
                         categoryID: nil
                     ))
                 }
@@ -192,9 +201,9 @@ final class NotificationService: NSObject {
 
     /// Prayer-entry sound: when full Adhan plays in-process, mute the
     /// notification sound to avoid double audio (spec §9).
-    private func soundForEntry(_ cfg: PrayerNotificationConfig) -> UNNotificationSound? {
-        if cfg.playFullAdhan, cfg.prayerSound.hasFullAdhan { return nil }
-        return notificationSound(cfg.prayerSound)
+    private func soundForEntry(_ cfg: ResolvedNotification) -> UNNotificationSound? {
+        if cfg.playFullAdhan, cfg.sound.hasFullAdhan { return nil }
+        return notificationSound(cfg.sound)
     }
 
     private func notificationSound(_ sound: NotificationSound) -> UNNotificationSound? {

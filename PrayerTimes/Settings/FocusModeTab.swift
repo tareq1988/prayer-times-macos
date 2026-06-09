@@ -24,11 +24,11 @@ struct FocusModeTab: View {
             }
 
             if enabled {
-                Section {
+                Section("Behaviour") {
                     LabeledContent("Prayer duration") {
                         HStack(spacing: 8) {
                             Text(durationLabel)
-                            Stepper("", value: $settings.settings.focusDurationMinutes, in: 1...60)
+                            Stepper("", value: $settings.settings.focusDurationMinutes, in: 2...45)
                                 .labelsHidden()
                         }
                     }
@@ -36,6 +36,12 @@ struct FocusModeTab: View {
                     Picker("Blur intensity", selection: $settings.settings.focusBlurIntensity) {
                         ForEach(FocusBlurIntensity.allCases, id: \.self) { level in
                             Text(PrayerFormatting.blurIntensityName(level)).tag(level)
+                        }
+                    }
+
+                    Picker("Trigger on", selection: $settings.settings.focusTrigger) {
+                        ForEach(FocusTrigger.allCases, id: \.self) { trigger in
+                            Text(PrayerFormatting.focusTriggerName(trigger)).tag(trigger)
                         }
                     }
 

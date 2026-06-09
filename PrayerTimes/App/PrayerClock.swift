@@ -31,7 +31,18 @@ final class PrayerClock {
 
     private var tickTask: Task<Void, Never>?
 
+    /// Held for the app's lifetime to keep App Nap from coalescing the 1-second
+    /// tick. Without it, an idle menu-bar agent gets its timers throttled, so the
+    /// tick that should catch a prayer crossing can land tens of seconds late —
+    /// past the catch-up guards — and Focus Mode / in-process Adhan silently miss
+    /// the prayer even though the system still delivers the scheduled notification.
+    /// `…AllowingIdleSystemSleep` disables App Nap *without* keeping the Mac awake.
+    @ObservationIgnored private let napActivity: any NSObjectProtocol
+
     init(settings: SettingsStore, notifications: NotificationService, audio: AudioService, focus: FocusModeController) {
+        napActivity = ProcessInfo.processInfo.beginActivity(
+            options: .userInitiatedAllowingIdleSystemSleep,
+            reason: "Fire prayer notifications, Adhan, and Focus Mode at exact times")
         self.settings = settings
         self.notifications = notifications
         self.audio = audio
@@ -89,6 +100,9 @@ final class PrayerClock {
     /// Whether the user enabled the optional Ishraq line in the panel.
     var showsIshraqTime: Bool { settings.settings.showIshraqTime }
 
+    /// Whether the panel shows the Hijri date line.
+    var showsHijriDate: Bool { settings.settings.showHijriDate }
+
     /// Whole-day correction applied to the displayed Hijri date (regional moon-sighting).
     var hijriDayAdjustment: Int { settings.settings.hijriDayAdjustment }
 
@@ -102,9 +116,10 @@ final class PrayerClock {
     func stopAdhan() { audio.stop() }
 
     /// Iqamah instant for a prayer, if an offset is configured (obligatory only).
+    /// In Manual mode the displayed time *is* the jamaat, so no extra iqamah line.
     func iqamahTime(for prayer: Prayer, prayerTime: Date) -> Date? {
-        guard prayer.isObligatory else { return nil }
-        let offset = settings.settings.notifications[prayer]?.iqamahOffsetMinutes ?? 0
+        guard prayer.isObligatory, settings.settings.calculationMode == .calculated else { return nil }
+        let offset = settings.settings.resolvedNotification(for: prayer).iqamahOffsetMinutes
         guard offset > 0 else { return nil }
         return prayerTime.addingTimeInterval(Double(offset) * 60)
     }
@@ -143,8 +158,12 @@ final class PrayerClock {
     /// sleep/wake gap never slams a stale full-screen block onto the desktop.
     private func beginFocusIfCrossed(from start: Date, to end: Date) {
         guard settings.settings.focusModeEnabled else { return }
-        guard end.timeIntervalSince(start) <= Self.maxAdhanCatchUp else { return }
-        for (prayer, time) in today.times where prayer.isObligatory && time > start && time <= end {
+        // A larger tolerance than the Adhan's: replaying late audio is jarring, but
+        // engaging the screen cover up to two minutes into a prayer is still useful
+        // (the window is wide), so a slightly delayed tick shouldn't lose it.
+        guard end.timeIntervalSince(start) <= Self.maxFocusCatchUp else { return }
+        let trigger = settings.settings.focusTrigger
+        for (prayer, time) in today.times where trigger.includes(prayer) && time > start && time <= end {
             focus.begin(prayer: prayer, settings: settings.settings)
         }
     }
@@ -165,13 +184,15 @@ final class PrayerClock {
     /// suspended (system sleep), so any prayer "crossed" in that window already
     /// passed while asleep — replaying its Adhan now would be wrong. Skip those.
     private static let maxAdhanCatchUp: TimeInterval = 10
+    /// Focus may engage a little later than the Adhan plays (see `beginFocusIfCrossed`).
+    private static let maxFocusCatchUp: TimeInterval = 120
     private func fireAdhanIfCrossed(from start: Date, to end: Date) {
         guard settings.settings.masterNotificationsEnabled else { return }
         guard end.timeIntervalSince(start) <= Self.maxAdhanCatchUp else { return }
         for (prayer, time) in today.times where time > start && time <= end {
-            let cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
-            if cfg.prayerNotificationEnabled, cfg.playFullAdhan {
-                audio.playFullAdhan(cfg.prayerSound)
+            let cfg = settings.settings.resolvedNotification(for: prayer)
+            if cfg.notify, cfg.playFullAdhan {
+                audio.playFullAdhan(cfg.sound)
             }
         }
     }
@@ -184,12 +205,16 @@ final class PrayerClock {
         cal.timeZone = tz
         let day = cal.date(byAdding: .day, value: dayOffset, to: reference) ?? reference
         let comps = cal.dateComponents([.year, .month, .day], from: day)
-        return PrayerTimeEngine.calculate(
+        let astronomical = PrayerTimeEngine.calculate(
             date: comps,
             coordinates: inputs.coordinates,
             params: inputs.parameters,
             timeZone: tz
         )
+        // Manual (fixed) time source: replace the obligatory times with the
+        // mosque's jamaat schedule, keeping Sunrise astronomical.
+        guard let manual = inputs.manual else { return astronomical }
+        return manual.applied(to: astronomical, day: day, timeZone: tz)
     }
 
     private static func civilDay(of date: Date, in timeZone: TimeZone) -> Date {

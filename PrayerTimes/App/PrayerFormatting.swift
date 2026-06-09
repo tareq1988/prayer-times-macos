@@ -24,6 +24,15 @@ enum PrayerFormatting {
         case .low: return String(localized: "Low")
         case .medium: return String(localized: "Medium")
         case .high: return String(localized: "High")
+        case .opaque: return String(localized: "Opaque")
+        }
+    }
+
+    static func focusTriggerName(_ trigger: FocusTrigger) -> String {
+        switch trigger {
+        case .obligatory: return String(localized: "Obligatory prayers")
+        case .all: return String(localized: "All prayer times")
+        case .fajrIsha: return String(localized: "Fajr & Isha only")
         }
     }
 

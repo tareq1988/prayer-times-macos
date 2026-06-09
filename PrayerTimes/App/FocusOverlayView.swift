@@ -69,6 +69,7 @@ struct FocusOverlayView: View {
         case .low: return 0.82
         case .medium: return 0.93
         case .high: return 0.99
+        case .opaque: return 1.0
         }
     }
 

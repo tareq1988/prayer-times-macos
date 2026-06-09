@@ -145,7 +145,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আযান (মদিনা)"
+            "value": "আজান (মদিনা)"
           }
         },
         "tr": {
@@ -167,7 +167,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আযান (মক্কা)"
+            "value": "আজান (মক্কা)"
           }
         },
         "tr": {
@@ -2279,7 +2279,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "সম্পূর্ণ আযান বাজান"
+            "value": "সম্পূর্ণ আজান বাজান"
           }
         },
         "tr": {
@@ -2675,7 +2675,7 @@
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আযান বন্ধ করুন"
+            "value": "আজান বন্ধ করুন"
           }
         },
         "tr": {
@@ -3320,6 +3320,161 @@
           "stringUnit": {
             "state": "translated",
             "value": "— Kur'an · Tâhâ 20:14"
+          }
+        }
+      }
+    },
+    "Adhan timing": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "توقيت الأذان"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজানের সময়"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ezan zamanlaması"
+          }
+        }
+      }
+    },
+    "Adhan before jamaat": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأذان قبل الجماعة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জামাতের আগে আজান"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cemaatten önce ezan"
+          }
+        }
+      }
+    },
+    "Adhan %@": {
+      "comment": "Computed call-to-prayer time chip in the jamaat schedule, e.g. 'Adhan 04:45'",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأذان %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আজান %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ezan %@"
+          }
+        }
+      }
+    },
+    "At jamaat": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عند الجماعة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জামাতের সময়"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cemaatte"
+          }
+        }
+      }
+    },
+    "%lld min before": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قبل %lld دقيقة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld মিনিট আগে"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld dk önce"
+          }
+        }
+      }
+    },
+    "The Adhan reminder fires this many minutes before the jamaat time set below.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ينطلق تذكير الأذان قبل وقت الجماعة المحدد أدناه بهذا العدد من الدقائق."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নিচে নির্ধারিত জামাতের সময়ের এত মিনিট আগে আজানের রিমাইন্ডার বাজবে।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ezan hatırlatıcısı, aşağıda ayarlanan cemaat vaktinden bu kadar dakika önce çalar."
+          }
+        }
+      }
+    },
+    "Times as announced by your mosque. The Adhan chip is the jamaat time minus the offset above.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأوقات كما يعلنها مسجدك. ملصق الأذان هو وقت الجماعة مطروحاً منه الإزاحة أعلاه."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার মসজিদের ঘোষণা অনুযায়ী সময়। আজানের চিপ হলো জামাতের সময় থেকে উপরের অফসেট বাদ দেওয়া।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caminizin duyurduğu vakitler. Ezan etiketi, cemaat vaktinden yukarıdaki farkın çıkarılmasıdır."
           }
         }
       }

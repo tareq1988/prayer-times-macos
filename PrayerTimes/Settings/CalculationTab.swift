@@ -1,51 +1,127 @@
 import SwiftUI
 import PrayerKit
 
-/// Calculation settings (spec §7.6): method, madhab (Asr), high-latitude rule,
-/// the auto-detect toggle, and the manual-method editor.
+/// Calculation settings (spec §7.6, design: Calculation tab). A "Time source"
+/// segmented control swaps the tab between the astronomical **Calculated** state
+/// (method, madhab, high-latitude rule, auto-detect, and the custom-angle editor)
+/// and the **Manual (fixed)** state, where the five obligatory times come from a
+/// mosque's announced jamaat schedule and the azan reminder fires a set number of
+/// minutes before each one.
 struct CalculationTab: View {
     @Bindable var settings: SettingsStore
 
-    private static let manualID = "manual"
+    private static let manualMethodID = "manual"
 
     var body: some View {
         Form {
-            Section("Method") {
-                Picker("Calculation method", selection: methodBinding) {
-                    ForEach(MethodRegistry.builtIn, id: \.id) { adapter in
-                        Text(adapter.displayName).tag(adapter.id)
-                    }
-                    Divider()
-                    Text("Manual").tag(Self.manualID)
-                }
-
-                Picker("Asr (madhab)", selection: $settings.settings.hanafiAsr) {
-                    Text("Standard").tag(false)
-                    Text("Hanafi").tag(true)
-                }
-
-                Picker("High-latitude rule", selection: $settings.settings.highLatitudeRule) {
-                    ForEach(HighLatitudeRule.allCases, id: \.self) { rule in
-                        Text(PrayerFormatting.highLatitudeRuleName(rule)).tag(rule)
-                    }
-                }
-            }
-
             Section {
-                Toggle("Auto-detect method from location", isOn: autoDetectBinding)
-                if let label = settings.autoMethodLabel {
-                    Text(label).font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Text("Resolves your country to a method; you can still override it below.")
-                        .font(.caption).foregroundStyle(.secondary)
+                Picker("Time source", selection: $settings.settings.calculationMode) {
+                    Text("Calculated").tag(CalculationMode.calculated)
+                    Text("Manual (fixed)").tag(CalculationMode.manual)
                 }
+                .pickerStyle(.segmented)
+            } header: {
+                Text("Source")
+            } footer: {
+                Text(settings.settings.calculationMode == .calculated
+                     ? "Times are computed astronomically from your location."
+                     : "Times are taken from the fixed schedule you enter below — ideal where the mosque announces set jamaat times (e.g. Bangladesh).")
             }
 
-            if settings.settings.methodID == Self.manualID {
-                ManualMethodEditor(parameters: manualParametersBinding)
+            if settings.settings.calculationMode == .calculated {
+                calculatedSections
+            } else {
+                manualSections
             }
         }
         .formStyle(.grouped)
+    }
+
+    // MARK: Calculated state
+
+    @ViewBuilder
+    private var calculatedSections: some View {
+        Section("Method") {
+            Picker("Calculation method", selection: methodBinding) {
+                ForEach(MethodRegistry.builtIn, id: \.id) { adapter in
+                    Text(adapter.displayName).tag(adapter.id)
+                }
+                Divider()
+                Text("Manual").tag(Self.manualMethodID)
+            }
+
+            Picker("Asr (madhab)", selection: $settings.settings.hanafiAsr) {
+                Text("Standard (Shafiʿi)").tag(false)
+                Text("Hanafi").tag(true)
+            }
+
+            Picker("High-latitude rule", selection: $settings.settings.highLatitudeRule) {
+                ForEach(HighLatitudeRule.allCases, id: \.self) { rule in
+                    Text(PrayerFormatting.highLatitudeRuleName(rule)).tag(rule)
+                }
+            }
+        }
+
+        Section {
+            Toggle("Auto-detect method from location", isOn: autoDetectBinding)
+        } header: {
+            Text("Automation")
+        } footer: {
+            if let label = settings.autoMethodLabel {
+                Text(label)
+            } else {
+                Text("Resolves your country to a method; you can still override it below.")
+            }
+        }
+
+        if settings.settings.methodID == Self.manualMethodID {
+            ManualMethodEditor(parameters: manualParametersBinding)
+        }
+    }
+
+    // MARK: Manual (fixed) state
+
+    @ViewBuilder
+    private var manualSections: some View {
+        Section {
+            Stepper(value: $settings.settings.azanBeforeJamaat, in: 0...60) {
+                HStack {
+                    Text("Adhan before jamaat")
+                    Spacer(minLength: 12)
+                    Text(azanBeforeLabel).monospacedDigit().foregroundStyle(.secondary)
+                }
+            }
+            Toggle(isOn: $settings.settings.manualKeepWaqt) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Follow waqt for Sunrise & windows")
+                    Text("Keep astronomical times for non-jamaat events.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("Adhan timing")
+        } footer: {
+            Text("The Adhan reminder fires this many minutes before the jamaat time set below.")
+        }
+
+        Section {
+            ForEach(Prayer.obligatory, id: \.self) { prayer in
+                JamaatRow(
+                    prayer: prayer,
+                    minutes: jamaatBinding(for: prayer),
+                    azanBefore: settings.settings.azanBeforeJamaat
+                )
+            }
+        } header: {
+            Text("Jamaat schedule")
+        } footer: {
+            Text("Times as announced by your mosque. The Adhan chip is the jamaat time minus the offset above.")
+        }
+    }
+
+    private var azanBeforeLabel: String {
+        let m = settings.settings.azanBeforeJamaat
+        return m == 0 ? String(localized: "At jamaat") : String(localized: "\(m) min before")
     }
 
     // MARK: Bindings
@@ -59,7 +135,7 @@ struct CalculationTab: View {
             set: { newID in
                 settings.settings.autoDetectMethod = false
                 settings.settings.methodID = newID
-                if newID == Self.manualID, settings.settings.manualParameters == nil {
+                if newID == Self.manualMethodID, settings.settings.manualParameters == nil {
                     settings.settings.manualParameters = Self.defaultManualParameters
                 }
             }
@@ -77,6 +153,13 @@ struct CalculationTab: View {
         )
     }
 
+    private func jamaatBinding(for prayer: Prayer) -> Binding<Int> {
+        Binding(
+            get: { settings.settings.jamaatTimes[prayer] ?? (AppSettings.defaultJamaatTimes[prayer] ?? 0) },
+            set: { settings.settings.jamaatTimes[prayer] = $0 }
+        )
+    }
+
     private var manualParametersBinding: Binding<CalculationParameters> {
         Binding(
             get: { settings.settings.manualParameters ?? Self.defaultManualParameters },
@@ -86,6 +169,58 @@ struct CalculationTab: View {
 
     private static var defaultManualParameters: CalculationParameters {
         CalculationParameters(fajrAngle: 18, ishaAngle: 17)
+    }
+}
+
+/// One jamaat-schedule row: the prayer's icon + name, the computed azan chip
+/// (`jamaat − offset`), and an editable time field bound to minutes-since-midnight.
+private struct JamaatRow: View {
+    let prayer: Prayer
+    @Binding var minutes: Int
+    let azanBefore: Int
+
+    var body: some View {
+        LabeledContent {
+            HStack(spacing: 8) {
+                Text(azanChip)
+                    .font(.caption.weight(.medium))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .background(Capsule().fill(.quaternary))
+                Text("jamaat").font(.caption).foregroundStyle(.secondary)
+                DatePicker("", selection: timeBinding, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+            }
+        } label: {
+            Label(PrayerFormatting.name(prayer), systemImage: PrayerFormatting.icon(prayer))
+        }
+    }
+
+    /// "Adhan HH:mm" = jamaat − offset, wrapping past midnight.
+    private var azanChip: String {
+        let m = ((minutes - azanBefore) % 1440 + 1440) % 1440
+        let time = String(format: "%02d:%02d", m / 60, m % 60)
+        return String(localized: "Adhan \(time)", comment: "Computed call-to-prayer time chip in the jamaat schedule, e.g. 'Adhan 04:45'")
+    }
+
+    /// Bridge minutes-since-midnight ↔ a `Date` for the hour/minute picker. A
+    /// fixed reference day is fine — only the time components are read back.
+    private var timeBinding: Binding<Date> {
+        Binding(
+            get: {
+                var cal = Calendar(identifier: .gregorian)
+                cal.timeZone = .current
+                let base = cal.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+                return base.addingTimeInterval(TimeInterval(minutes) * 60)
+            },
+            set: { date in
+                var cal = Calendar(identifier: .gregorian)
+                cal.timeZone = .current
+                let c = cal.dateComponents([.hour, .minute], from: date)
+                minutes = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+            }
+        )
     }
 }
 
