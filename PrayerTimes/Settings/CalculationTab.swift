@@ -106,7 +106,7 @@ struct CalculationTab: View {
 
         Section {
             ForEach(Prayer.obligatory, id: \.self) { prayer in
-                JamaatRow(
+                JamaatRowView(
                     prayer: prayer,
                     minutes: jamaatBinding(for: prayer),
                     azanBefore: settings.settings.azanBeforeJamaat
@@ -169,58 +169,6 @@ struct CalculationTab: View {
 
     private static var defaultManualParameters: CalculationParameters {
         CalculationParameters(fajrAngle: 18, ishaAngle: 17)
-    }
-}
-
-/// One jamaat-schedule row: the prayer's icon + name, the computed azan chip
-/// (`jamaat − offset`), and an editable time field bound to minutes-since-midnight.
-private struct JamaatRow: View {
-    let prayer: Prayer
-    @Binding var minutes: Int
-    let azanBefore: Int
-
-    var body: some View {
-        LabeledContent {
-            HStack(spacing: 8) {
-                Text(azanChip)
-                    .font(.caption.weight(.medium))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(.quaternary))
-                Text("jamaat").font(.caption).foregroundStyle(.secondary)
-                DatePicker("", selection: timeBinding, displayedComponents: .hourAndMinute)
-                    .labelsHidden()
-            }
-        } label: {
-            Label(PrayerFormatting.name(prayer), systemImage: PrayerFormatting.icon(prayer))
-        }
-    }
-
-    /// "Adhan HH:mm" = jamaat − offset, wrapping past midnight.
-    private var azanChip: String {
-        let m = ((minutes - azanBefore) % 1440 + 1440) % 1440
-        let time = String(format: "%02d:%02d", m / 60, m % 60)
-        return String(localized: "Adhan \(time)", comment: "Computed call-to-prayer time chip in the jamaat schedule, e.g. 'Adhan 04:45'")
-    }
-
-    /// Bridge minutes-since-midnight ↔ a `Date` for the hour/minute picker. A
-    /// fixed reference day is fine — only the time components are read back.
-    private var timeBinding: Binding<Date> {
-        Binding(
-            get: {
-                var cal = Calendar(identifier: .gregorian)
-                cal.timeZone = .current
-                let base = cal.startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
-                return base.addingTimeInterval(TimeInterval(minutes) * 60)
-            },
-            set: { date in
-                var cal = Calendar(identifier: .gregorian)
-                cal.timeZone = .current
-                let c = cal.dateComponents([.hour, .minute], from: date)
-                minutes = (c.hour ?? 0) * 60 + (c.minute ?? 0)
-            }
-        )
     }
 }
 
