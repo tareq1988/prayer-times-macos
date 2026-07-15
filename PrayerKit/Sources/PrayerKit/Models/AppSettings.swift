@@ -243,6 +243,10 @@ public struct AppSettings: Codable, Sendable, Equatable {
     /// to `true` so an upgrade never re-triggers it.
     public var didCompleteOnboarding: Bool
 
+    /// User-imported custom Adhan sounds, referenced by `NotificationSound.custom`.
+    /// Additive field: pre-custom blobs omit the key and decode to an empty library.
+    public var customSounds: [CustomSound]
+
     public init(
         methodID: String = "mwl",
         manualParameters: CalculationParameters? = nil,
@@ -272,7 +276,8 @@ public struct AppSettings: Codable, Sendable, Equatable {
         notificationDefaults: NotificationDefaults = NotificationDefaults(),
         notifications: [Prayer: PrayerNotificationConfig] = AppSettings.defaultNotifications,
         autoUpdateEnabled: Bool = true,
-        didCompleteOnboarding: Bool = false
+        didCompleteOnboarding: Bool = false,
+        customSounds: [CustomSound] = []
     ) {
         self.methodID = methodID
         self.manualParameters = manualParameters
@@ -303,6 +308,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         self.notifications = notifications
         self.autoUpdateEnabled = autoUpdateEnabled
         self.didCompleteOnboarding = didCompleteOnboarding
+        self.customSounds = customSounds
     }
 
     /// Resilient decoding: every field is optional-with-default so that adding a
@@ -344,6 +350,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         notifications = try get(.notifications, d.notifications)
         autoUpdateEnabled = try get(.autoUpdateEnabled, d.autoUpdateEnabled)
         didCompleteOnboarding = try get(.didCompleteOnboarding, d.didCompleteOnboarding)
+        customSounds = try get(.customSounds, d.customSounds)
     }
 
     // MARK: Resolved notification behaviour

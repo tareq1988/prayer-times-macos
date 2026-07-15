@@ -195,7 +195,7 @@ final class PrayerClock {
             let cfg = settings.settings.resolvedNotification(for: prayer)
             guard cfg.notify else { continue }
             if cfg.playFullAdhan, cfg.sound.hasFullAdhan {
-                audio.playFullAdhan(cfg.sound)
+                audio.playFullAdhan(cfg.sound, customSounds: settings.settings.customSounds)
             } else {
                 audio.playClip(cfg.sound)
             }

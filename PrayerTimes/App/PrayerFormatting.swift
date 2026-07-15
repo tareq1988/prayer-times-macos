@@ -149,7 +149,7 @@ enum PrayerFormatting {
         }
     }
 
-    static func soundName(_ sound: NotificationSound) -> String {
+    static func soundName(_ sound: NotificationSound, customSounds: [CustomSound] = []) -> String {
         switch sound {
         case .none: return String(localized: "None")
         case .systemDefault: return String(localized: "Default")
@@ -157,6 +157,8 @@ enum PrayerFormatting {
         case .takbir: return String(localized: "Takbir")
         case .adhanMakkah: return String(localized: "Adhan (Makkah)")
         case .adhanMadinah: return String(localized: "Adhan (Madinah)")
+        case .custom(let id):
+            return customSounds.first(where: { $0.id == id })?.displayName ?? String(localized: "Custom sound")
         }
     }
 }
