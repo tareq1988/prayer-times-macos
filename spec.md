@@ -43,10 +43,10 @@ engine and adapter design already agreed (see §6).
 ### Goals (nice-to-have)
 - **Widget** (WidgetKit) showing the next prayer / today's times. Lower
   priority than the menu bar app itself; ship if time allows.
+- User-imported custom Adhan files (bundled Adhans only).
 
 ### Non-Goals (v1)
 - Qibla compass and Hijri date — explicitly out of scope.
-- User-imported custom Adhan files (bundled Adhans only).
 - iCloud sync, iOS companion app.
 - App Store distribution (direct/GitHub + Homebrew only).
 - Multiple simultaneous locations / travel mode (future enhancement).
