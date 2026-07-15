@@ -100,7 +100,7 @@ final class CustomSoundTests: XCTestCase {
         let id = UUID()
         var s = AppSettings()
         s.customSounds = [CustomSound(id: id, fileName: "\(id.uuidString).mp3", displayName: "Fajr Adhan")]
-        s.notifications[.fajr] = PrayerNotificationConfig(playFullAdhan: true, soundOverride: .custom(id))
+        s.notifications[.fajr] = PrayerNotificationConfig(playFullAdhanOverride: true, soundOverride: .custom(id))
 
         let data = try JSONEncoder().encode(s)
         let decoded = try JSONDecoder().decode(AppSettings.self, from: data)

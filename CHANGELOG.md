@@ -9,6 +9,9 @@ All notable changes to Prayer Times are documented here. This project adheres to
 ### Added
 - **Custom Adhan sounds.** Import your own audio in Settings → Notifications → **Custom sounds**, then choose it as the default sound or per-prayer — so you can set a proper **Fajr Adhan**, which the bundled Makkah/Madinah recordings don't include. Imported files are validated (playable audio, up to 10 minutes) and copied into the app's own storage, so they keep working after you clear Downloads. No audio ships with the app. A custom sound plays at prayer time when that prayer's **Adhan** is turned on; if its file is ever missing it falls back to the Takbir chime rather than going silent.
 
+### Fixed
+- **The "Play full Adhan audio" default now takes effect.** It was previously saved but never applied, so each prayer's Adhan had to be enabled individually. It now cascades to every prayer unless that prayer is overridden — matching how the default sound and reminder already behave.
+
 ### Notes
 - Assigning a custom sound and then **downgrading** to 0.6.0 or earlier resets settings to defaults once — older builds can't read the new custom-sound values. Staying on this version or newer is unaffected.
 

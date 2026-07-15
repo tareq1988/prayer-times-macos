@@ -195,7 +195,7 @@ struct NotificationsTab: View {
             // Adhan (obligatory only)
             Group {
                 if prayer.isObligatory {
-                    Toggle("", isOn: cfg.playFullAdhan).labelsHidden().controlSize(.mini)
+                    Toggle("", isOn: adhanBinding(for: prayer)).labelsHidden().controlSize(.mini)
                 } else {
                     Text("—").foregroundStyle(.tertiary)
                 }
@@ -351,6 +351,23 @@ struct NotificationsTab: View {
         Binding(
             get: { settings.settings.notifications[prayer] ?? PrayerNotificationConfig() },
             set: { settings.settings.notifications[prayer] = $0 }
+        )
+    }
+
+    /// The matrix "Adhan" toggle. Shows the effective value (per-prayer override,
+    /// else the global "Play full Adhan audio" default) and writes an explicit
+    /// override when flipped.
+    private func adhanBinding(for prayer: Prayer) -> Binding<Bool> {
+        Binding(
+            get: {
+                let cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+                return cfg.playFullAdhanOverride ?? settings.settings.notificationDefaults.playFullAdhan
+            },
+            set: { on in
+                var cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+                cfg.playFullAdhanOverride = on
+                settings.settings.notifications[prayer] = cfg
+            }
         )
     }
 
