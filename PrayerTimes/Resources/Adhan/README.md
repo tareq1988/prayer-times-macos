@@ -9,5 +9,7 @@ here and run `xcodegen generate`; matched by filename in `NotificationSound`:
 | `.adhanMakkah`    | `adhan-makkah.m4a`  |
 | `.adhanMadinah`   | `adhan-madinah.m4a` |
 
-Bundled Adhans only (no user-imported files in v1, spec §2). Until files are
-added, full-Adhan playback no-ops with a log; everything else works.
+These are the bundled Adhans. Users can also import their own audio (Settings →
+Notifications → Custom sounds), stored under Application Support and referenced by
+`NotificationSound.custom(_:)` / `CustomSound` — see `CustomAdhanLibrary`. Until the
+bundled files are added, full-Adhan playback no-ops with a log; everything else works.
