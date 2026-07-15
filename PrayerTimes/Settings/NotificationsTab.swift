@@ -24,6 +24,9 @@ struct NotificationsTab: View {
     @State private var customSoundError: String?
     /// Ids of custom sounds whose backing file is missing on disk (re-import badge).
     @State private var missingCustomSoundIDs: Set<UUID> = []
+    /// Which custom-sound name field holds focus, so its focus ring can be dismissed
+    /// (Return commits and releases; leaving the tab clears it).
+    @FocusState private var renamingSoundID: UUID?
 
     private var masterOn: Bool { settings.settings.masterNotificationsEnabled }
 
@@ -64,6 +67,7 @@ struct NotificationsTab: View {
             matrixSection.disabled(!masterOn)
         }
         .formStyle(.grouped)
+        .onDisappear { renamingSoundID = nil }
         .task { await notifications.refreshAuthorizationStatus() }
         .task { refreshMissingCustomSounds() }
         .fileImporter(isPresented: $importingCustomSound,
@@ -124,6 +128,8 @@ struct NotificationsTab: View {
                     previewButton(.custom(cs.id))
                     TextField("Name", text: $cs.displayName)
                         .textFieldStyle(.roundedBorder)
+                        .focused($renamingSoundID, equals: cs.id)
+                        .onSubmit { renamingSoundID = nil }
                     if missingCustomSoundIDs.contains(cs.id) {
                         Text("File missing — re-import")
                             .font(.caption).foregroundStyle(.orange)
