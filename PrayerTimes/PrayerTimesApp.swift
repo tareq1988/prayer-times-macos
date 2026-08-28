@@ -15,7 +15,8 @@ struct PrayerTimesApp: App {
     init() {
         let location = LocationService()
         let settings = SettingsStore(location: location)
-        let audio = AudioService()
+        let library = CustomAdhanLibrary()
+        let audio = AudioService(library: library)
         let notifications = NotificationService(audio: audio)
         let focus = FocusModeController()
         _settings = State(initialValue: settings)
@@ -24,7 +25,7 @@ struct PrayerTimesApp: App {
         self.onboarding = onboarding
 
         // Let the General tab relaunch the setup wizard at any time.
-        settingsWindow = SettingsWindowManager(settings: settings, audio: audio, updates: updates, notifications: notifications, focus: focus, runSetupAgain: { onboarding.restart() })
+        settingsWindow = SettingsWindowManager(settings: settings, audio: audio, updates: updates, notifications: notifications, focus: focus, library: library, runSetupAgain: { onboarding.restart() })
 
         // Mirror the persisted preference into Sparkle.
         updates.automaticallyChecksForUpdates = settings.settings.autoUpdateEnabled

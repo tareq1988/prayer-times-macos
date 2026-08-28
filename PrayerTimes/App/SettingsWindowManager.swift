@@ -18,6 +18,7 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
     private let updates: UpdateService
     private let notifications: NotificationService
     private let focus: FocusModeController
+    private let library: CustomAdhanLibrary
     /// Dev-only hook to re-run the setup wizard from the General tab (nil in release).
     private let runSetupAgain: (() -> Void)?
     private var window: NSWindow?
@@ -26,12 +27,13 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
     /// Fixed pane size so the window doesn't jump between tabs; tall panes scroll.
     private static let paneSize = NSSize(width: 480, height: 520)
 
-    init(settings: SettingsStore, audio: AudioService, updates: UpdateService, notifications: NotificationService, focus: FocusModeController, runSetupAgain: (() -> Void)? = nil) {
+    init(settings: SettingsStore, audio: AudioService, updates: UpdateService, notifications: NotificationService, focus: FocusModeController, library: CustomAdhanLibrary, runSetupAgain: (() -> Void)? = nil) {
         self.settings = settings
         self.audio = audio
         self.updates = updates
         self.notifications = notifications
         self.focus = focus
+        self.library = library
         self.runSetupAgain = runSetupAgain
     }
 
@@ -130,7 +132,7 @@ final class SettingsWindowManager: NSObject, NSWindowDelegate, NSToolbarDelegate
         case .general: content = AnyView(GeneralTab(settings: settings, updates: updates, runSetupAgain: runSetupAgain))
         case .location: content = AnyView(LocationTimeTab(settings: settings))
         case .calculation: content = AnyView(CalculationTab(settings: settings))
-        case .notifications: content = AnyView(NotificationsTab(settings: settings, audio: audio, notifications: notifications))
+        case .notifications: content = AnyView(NotificationsTab(settings: settings, audio: audio, notifications: notifications, library: library))
         case .focus: content = AnyView(FocusModeTab(settings: settings, focus: focus))
         }
         return AnyView(content.frame(width: Self.paneSize.width, height: Self.paneSize.height))

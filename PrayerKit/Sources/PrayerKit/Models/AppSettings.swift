@@ -138,7 +138,8 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
     /// Matrix "Notify" — the prayer-entry notification.
     public var notify: Bool
     /// Matrix "Adhan" — play the full Adhan in-process (obligatory prayers only).
-    public var playFullAdhan: Bool
+    /// `nil` inherits `NotificationDefaults.playFullAdhan`.
+    public var playFullAdhanOverride: Bool?
     /// Matrix "Remind" — fire the early reminder.
     public var earlyReminderEnabled: Bool
 
@@ -151,18 +152,25 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
 
     public init(
         notify: Bool = true,
-        playFullAdhan: Bool = false,
+        playFullAdhanOverride: Bool? = nil,
         earlyReminderEnabled: Bool = false,
         soundOverride: NotificationSound? = nil,
         earlyLeadMinutesOverride: Int? = nil,
         iqamahOffsetMinutesOverride: Int? = nil
     ) {
         self.notify = notify
-        self.playFullAdhan = playFullAdhan
+        self.playFullAdhanOverride = playFullAdhanOverride
         self.earlyReminderEnabled = earlyReminderEnabled
         self.soundOverride = soundOverride
         self.earlyLeadMinutesOverride = earlyLeadMinutesOverride
         self.iqamahOffsetMinutesOverride = iqamahOffsetMinutesOverride
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case notify, playFullAdhanOverride, earlyReminderEnabled
+        case soundOverride, earlyLeadMinutesOverride, iqamahOffsetMinutesOverride
+        /// Legacy pre-inherit key, read for migration only (never written).
+        case playFullAdhan
     }
 
     /// Resilient decode so an older persisted blob (whose per-prayer keys differ)
@@ -172,11 +180,30 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = PrayerNotificationConfig()
         notify = try c.decodeIfPresent(Bool.self, forKey: .notify) ?? d.notify
-        playFullAdhan = try c.decodeIfPresent(Bool.self, forKey: .playFullAdhan) ?? d.playFullAdhan
+        // Migrate the pre-inherit `playFullAdhan` bool: an explicit `true` becomes an
+        // override; `false` becomes nil so it now inherits the default (the old bool
+        // couldn't inherit, so nobody relied on an explicit per-prayer "off").
+        if let legacy = try c.decodeIfPresent(Bool.self, forKey: .playFullAdhan) {
+            playFullAdhanOverride = legacy ? true : nil
+        } else {
+            playFullAdhanOverride = try c.decodeIfPresent(Bool.self, forKey: .playFullAdhanOverride)
+        }
         earlyReminderEnabled = try c.decodeIfPresent(Bool.self, forKey: .earlyReminderEnabled) ?? d.earlyReminderEnabled
         soundOverride = try c.decodeIfPresent(NotificationSound.self, forKey: .soundOverride)
         earlyLeadMinutesOverride = try c.decodeIfPresent(Int.self, forKey: .earlyLeadMinutesOverride)
         iqamahOffsetMinutesOverride = try c.decodeIfPresent(Int.self, forKey: .iqamahOffsetMinutesOverride)
+    }
+
+    // Explicit encode (the legacy `playFullAdhan` CodingKey blocks synthesis, and it
+    // must never be written — only read for migration).
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(notify, forKey: .notify)
+        try c.encodeIfPresent(playFullAdhanOverride, forKey: .playFullAdhanOverride)
+        try c.encode(earlyReminderEnabled, forKey: .earlyReminderEnabled)
+        try c.encodeIfPresent(soundOverride, forKey: .soundOverride)
+        try c.encodeIfPresent(earlyLeadMinutesOverride, forKey: .earlyLeadMinutesOverride)
+        try c.encodeIfPresent(iqamahOffsetMinutesOverride, forKey: .iqamahOffsetMinutesOverride)
     }
 }
 
@@ -243,6 +270,10 @@ public struct AppSettings: Codable, Sendable, Equatable {
     /// to `true` so an upgrade never re-triggers it.
     public var didCompleteOnboarding: Bool
 
+    /// User-imported custom Adhan sounds, referenced by `NotificationSound.custom`.
+    /// Additive field: pre-custom blobs omit the key and decode to an empty library.
+    public var customSounds: [CustomSound]
+
     public init(
         methodID: String = "mwl",
         manualParameters: CalculationParameters? = nil,
@@ -272,7 +303,8 @@ public struct AppSettings: Codable, Sendable, Equatable {
         notificationDefaults: NotificationDefaults = NotificationDefaults(),
         notifications: [Prayer: PrayerNotificationConfig] = AppSettings.defaultNotifications,
         autoUpdateEnabled: Bool = true,
-        didCompleteOnboarding: Bool = false
+        didCompleteOnboarding: Bool = false,
+        customSounds: [CustomSound] = []
     ) {
         self.methodID = methodID
         self.manualParameters = manualParameters
@@ -303,6 +335,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         self.notifications = notifications
         self.autoUpdateEnabled = autoUpdateEnabled
         self.didCompleteOnboarding = didCompleteOnboarding
+        self.customSounds = customSounds
     }
 
     /// Resilient decoding: every field is optional-with-default so that adding a
@@ -344,6 +377,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         notifications = try get(.notifications, d.notifications)
         autoUpdateEnabled = try get(.autoUpdateEnabled, d.autoUpdateEnabled)
         didCompleteOnboarding = try get(.didCompleteOnboarding, d.didCompleteOnboarding)
+        customSounds = try get(.customSounds, d.customSounds)
     }
 
     // MARK: Resolved notification behaviour
@@ -372,7 +406,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         return ResolvedNotification(
             notify: cfg.notify,
             sound: cfg.soundOverride ?? notificationDefaults.sound,
-            playFullAdhan: prayer.isObligatory && cfg.playFullAdhan,
+            playFullAdhan: prayer.isObligatory && (cfg.playFullAdhanOverride ?? notificationDefaults.playFullAdhan),
             earlyReminderEnabled: cfg.earlyReminderEnabled && lead > 0,
             earlyLeadMinutes: max(1, lead),
             iqamahOffsetMinutes: max(0, iqamah)

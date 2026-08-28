@@ -95,7 +95,7 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(fajr.iqamahOffsetMinutes, 5)
 
         // Sunrise never carries Adhan or iqamah even if asked.
-        s.notifications[.sunrise] = PrayerNotificationConfig(playFullAdhan: true)
+        s.notifications[.sunrise] = PrayerNotificationConfig(playFullAdhanOverride: true)
         let sunrise = s.resolvedNotification(for: .sunrise)
         XCTAssertFalse(sunrise.playFullAdhan)
         XCTAssertEqual(sunrise.iqamahOffsetMinutes, 0)
@@ -108,5 +108,34 @@ final class ModelTests: XCTestCase {
         // Adhan selections still use a short clip for the notification itself.
         XCTAssertEqual(NotificationSound.adhanMakkah.notificationClipFileName, "takbir.caf")
         XCTAssertNil(NotificationSound.none.notificationClipFileName)
+    }
+
+    func testPlayFullAdhanInheritsDefault() {
+        var s = AppSettings()
+        s.notificationDefaults.playFullAdhan = true
+
+        // No per-prayer override -> inherits the default (obligatory prayer).
+        s.notifications[.asr] = PrayerNotificationConfig()
+        XCTAssertTrue(s.resolvedNotification(for: .asr).playFullAdhan)
+
+        // An explicit per-prayer override wins over the default.
+        s.notifications[.asr] = PrayerNotificationConfig(playFullAdhanOverride: false)
+        XCTAssertFalse(s.resolvedNotification(for: .asr).playFullAdhan)
+
+        // Sunrise never plays the Adhan even when the default is on.
+        XCTAssertFalse(s.resolvedNotification(for: .sunrise).playFullAdhan)
+    }
+
+    func testLegacyPlayFullAdhanMigratesToOverride() throws {
+        func decode(_ json: String) throws -> PrayerNotificationConfig {
+            try JSONDecoder().decode(PrayerNotificationConfig.self, from: Data(json.utf8))
+        }
+        // Pre-inherit `playFullAdhan`: true -> explicit override (preserved);
+        // false -> nil so it now inherits the default; absent -> nil.
+        XCTAssertEqual(try decode(#"{ "notify": true, "playFullAdhan": true }"#).playFullAdhanOverride, true)
+        XCTAssertNil(try decode(#"{ "notify": true, "playFullAdhan": false }"#).playFullAdhanOverride)
+        XCTAssertNil(try decode(#"{ "notify": true }"#).playFullAdhanOverride)
+        // A new-format blob uses the override key directly.
+        XCTAssertEqual(try decode(#"{ "playFullAdhanOverride": true }"#).playFullAdhanOverride, true)
     }
 }

@@ -1,6 +1,270 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "This isn't a supported audio format.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا ليس تنسيقًا صوتيًا مدعومًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি একটি সমর্থিত অডিও ফরম্যাট নয়।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu, desteklenen bir ses biçimi değil."
+          }
+        }
+      }
+    },
+    "Couldn't read this audio file.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّرت قراءة ملف الصوت هذا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই অডিও ফাইলটি পড়া যায়নি।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ses dosyası okunamadı."
+          }
+        }
+      }
+    },
+    "This audio is too long (max 10 minutes).": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هذا المقطع الصوتي طويل جدًا (بحد أقصى ١٠ دقائق)."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই অডিওটি খুব দীর্ঘ (সর্বোচ্চ ১০ মিনিট)।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu ses çok uzun (en fazla 10 dakika)."
+          }
+        }
+      }
+    },
+    "Custom sound": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "صوت مخصّص"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কাস্টম সাউন্ড"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel ses"
+          }
+        }
+      }
+    },
+    "File missing — re-import": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الملف مفقود — أعد الاستيراد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফাইল অনুপস্থিত — পুনরায় ইম্পোর্ট করুন"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya eksik — yeniden içe aktar"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاسم"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "নাম"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad"
+          }
+        }
+      }
+    },
+    "Delete custom sound": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف الصوت المخصّص"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কাস্টম সাউন্ড মুছুন"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel sesi sil"
+          }
+        }
+      }
+    },
+    "Import custom sound…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استيراد صوت مخصّص…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কাস্টম সাউন্ড ইম্পোর্ট করুন…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel ses içe aktar…"
+          }
+        }
+      }
+    },
+    "Custom sounds": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الأصوات المخصّصة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কাস্টম সাউন্ড"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel sesler"
+          }
+        }
+      }
+    },
+    "Import your own Adhan audio, then pick it as a sound above. A custom sound plays at prayer time only when that prayer's Adhan is turned on.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استورد ملف أذان خاصًا بك، ثم اختره كصوت في الأعلى. لا يُشغَّل الصوت المخصّص وقت الصلاة إلا عند تفعيل الأذان لتلك الصلاة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার নিজের আজানের অডিও ইম্পোর্ট করুন, তারপর উপরে সাউন্ড হিসেবে বেছে নিন। কোনো কাস্টম সাউন্ড কেবল তখনই নামাজের সময় বাজে যখন ঐ নামাজের আজান চালু থাকে।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kendi Ezan sesinizi içe aktarın, ardından yukarıda ses olarak seçin. Özel bir ses, yalnızca ilgili namazın Ezan'ı açık olduğunda namaz vaktinde çalar."
+          }
+        }
+      }
+    },
+    "Couldn't add sound": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّرت إضافة الصوت"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাউন্ড যোগ করা যায়নি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses eklenemedi"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موافق"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ঠিক আছে"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamam"
+          }
+        }
+      }
+    },
     "%@ %@ left": {
       "localizations": {
         "ar": {

@@ -19,10 +19,27 @@ final class AudioService: NSObject, AVAudioPlayerDelegate {
 
     @ObservationIgnored private var player: AVAudioPlayer?
     @ObservationIgnored private let log = Logger(subsystem: "co.tareq.prayertimes", category: "audio")
+    @ObservationIgnored private let library: CustomAdhanLibrary
 
-    /// Play the full Adhan associated with `sound` (Makkah/Madinah). No-op if the
-    /// selection has no full file or the file isn't bundled.
-    func playFullAdhan(_ sound: NotificationSound) {
+    init(library: CustomAdhanLibrary) {
+        self.library = library
+        super.init()
+    }
+
+    /// Play the full Adhan for `sound`. For a bundled Adhan (Makkah/Madinah) this
+    /// plays the bundled file; for a `.custom` selection it resolves the user file
+    /// via `customSounds`. If a custom file is missing/corrupt at the prayer instant
+    /// it falls back to the bundled takbir clip — never silence, never a crash.
+    func playFullAdhan(_ sound: NotificationSound, customSounds: [CustomSound] = []) {
+        if let id = sound.customID {
+            if let url = library.resolvedURL(for: id, in: customSounds) {
+                play(url)
+            } else {
+                log.warning("Custom Adhan missing for \(id, privacy: .public); falling back to takbir")
+                playFallbackClip()
+            }
+            return
+        }
         guard let fileName = sound.fullAdhanFileName else { return }
         guard let url = Self.bundleURL(for: fileName) else {
             log.warning("Full Adhan file not bundled: \(fileName, privacy: .public)")
@@ -34,7 +51,7 @@ final class AudioService: NSObject, AVAudioPlayerDelegate {
     /// Play a preview for the settings sound pickers. Adhan selections preview
     /// the full Adhan (so the user actually hears what they chose); other sounds
     /// preview their short clip.
-    func preview(_ sound: NotificationSound) {
+    func preview(_ sound: NotificationSound, customSounds: [CustomSound] = []) {
         switch sound {
         case .none:
             return
@@ -43,6 +60,14 @@ final class AudioService: NSObject, AVAudioPlayerDelegate {
             return
         default:
             break
+        }
+        if let id = sound.customID {
+            if let url = library.resolvedURL(for: id, in: customSounds) {
+                play(url)
+            } else {
+                log.warning("Custom Adhan preview missing for \(id, privacy: .public)")
+            }
+            return
         }
         guard let fileName = sound.fullAdhanFileName ?? sound.notificationClipFileName else {
             return
@@ -81,6 +106,13 @@ final class AudioService: NSObject, AVAudioPlayerDelegate {
     }
 
     // MARK: Helpers
+
+    /// Last-resort audible fallback when a custom Adhan can't be resolved at the
+    /// prayer instant — better a short takbir than silence at a crossed prayer.
+    private func playFallbackClip() {
+        guard let url = Self.bundleURL(for: "takbir.caf") else { return }
+        play(url)
+    }
 
     private func play(_ url: URL) {
         stop()

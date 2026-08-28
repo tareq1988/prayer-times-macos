@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import UserNotifications
+import UniformTypeIdentifiers
 import PrayerKit
 
 /// Notification settings (spec §7.3, §7.4, design: Notifications tab). Reorganized
@@ -13,11 +14,19 @@ struct NotificationsTab: View {
     @Bindable var settings: SettingsStore
     let audio: AudioService
     let notifications: NotificationService
+    let library: CustomAdhanLibrary
 
     /// Prayers shown in the matrix, in order (Ishraq is panel-only, not notified).
     private let matrixPrayers: [Prayer] = [.fajr, .sunrise, .dhuhr, .asr, .maghrib, .isha]
 
     @State private var expanded: Set<Prayer> = []
+    @State private var importingCustomSound = false
+    @State private var customSoundError: String?
+    /// Ids of custom sounds whose backing file is missing on disk (re-import badge).
+    @State private var missingCustomSoundIDs: Set<UUID> = []
+    /// Which custom-sound name field holds focus, so its focus ring can be dismissed
+    /// (Return commits and releases; leaving the tab clears it).
+    @FocusState private var renamingSoundID: UUID?
 
     private var masterOn: Bool { settings.settings.masterNotificationsEnabled }
 
@@ -54,10 +63,21 @@ struct NotificationsTab: View {
             }
 
             defaultsSection.disabled(!masterOn)
+            customSoundsSection.disabled(!masterOn)
             matrixSection.disabled(!masterOn)
         }
         .formStyle(.grouped)
+        .onDisappear { renamingSoundID = nil }
         .task { await notifications.refreshAuthorizationStatus() }
+        .task { refreshMissingCustomSounds() }
+        .fileImporter(isPresented: $importingCustomSound,
+                      allowedContentTypes: [.audio],
+                      onCompletion: handleCustomSoundImport)
+        .alert("Couldn't add sound", isPresented: customSoundErrorShown) {
+            Button("OK", role: .cancel) { customSoundError = nil }
+        } message: {
+            Text(customSoundError ?? "")
+        }
     }
 
     // MARK: Defaults
@@ -70,6 +90,9 @@ struct NotificationsTab: View {
                     Picker("", selection: $settings.settings.notificationDefaults.sound) {
                         ForEach(NotificationSound.allCases, id: \.self) { sound in
                             Text(PrayerFormatting.soundName(sound)).tag(sound)
+                        }
+                        ForEach(settings.settings.customSounds) { cs in
+                            Text(cs.displayName).tag(NotificationSound.custom(cs.id))
                         }
                     }
                     .labelsHidden().fixedSize()
@@ -93,6 +116,43 @@ struct NotificationsTab: View {
             Text("Defaults")
         } footer: {
             Text("Applied to every prayer. Expand a prayer below to override its sound, reminder, or iqamah.")
+        }
+    }
+
+    // MARK: Custom sounds
+
+    private var customSoundsSection: some View {
+        Section {
+            ForEach($settings.settings.customSounds) { $cs in
+                HStack(spacing: 8) {
+                    previewButton(.custom(cs.id))
+                    TextField("Name", text: $cs.displayName)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($renamingSoundID, equals: cs.id)
+                        .onSubmit { renamingSoundID = nil }
+                    if missingCustomSoundIDs.contains(cs.id) {
+                        Text("File missing — re-import")
+                            .font(.caption).foregroundStyle(.orange)
+                    }
+                    Spacer(minLength: 0)
+                    Button(role: .destructive) {
+                        deleteCustomSound(cs)
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Delete custom sound")
+                }
+            }
+            Button {
+                importingCustomSound = true
+            } label: {
+                Label("Import custom sound…", systemImage: "square.and.arrow.down")
+            }
+        } header: {
+            Text("Custom sounds")
+        } footer: {
+            Text("Import your own Adhan audio, then pick it as a sound above. A custom sound plays at prayer time only when that prayer's Adhan is turned on.")
         }
     }
 
@@ -135,7 +195,7 @@ struct NotificationsTab: View {
             // Adhan (obligatory only)
             Group {
                 if prayer.isObligatory {
-                    Toggle("", isOn: cfg.playFullAdhan).labelsHidden().controlSize(.mini)
+                    Toggle("", isOn: adhanBinding(for: prayer)).labelsHidden().controlSize(.mini)
                 } else {
                     Text("—").foregroundStyle(.tertiary)
                 }
@@ -175,10 +235,15 @@ struct NotificationsTab: View {
                 HStack(spacing: 6) {
                     previewButton(cfg.soundOverride.wrappedValue ?? settings.settings.notificationDefaults.sound)
                     Picker("", selection: cfg.soundOverride) {
-                        Text(inheritLabel(PrayerFormatting.soundName(settings.settings.notificationDefaults.sound)))
+                        Text(inheritLabel(PrayerFormatting.soundName(
+                            settings.settings.notificationDefaults.sound,
+                            customSounds: settings.settings.customSounds)))
                             .tag(NotificationSound?.none)
                         ForEach(NotificationSound.allCases, id: \.self) { sound in
                             Text(PrayerFormatting.soundName(sound)).tag(NotificationSound?.some(sound))
+                        }
+                        ForEach(settings.settings.customSounds) { cs in
+                            Text(cs.displayName).tag(NotificationSound?.some(.custom(cs.id)))
                         }
                     }
                     .labelsHidden().fixedSize()
@@ -205,13 +270,61 @@ struct NotificationsTab: View {
 
     private func previewButton(_ sound: NotificationSound) -> some View {
         Button {
-            if audio.isPlaying { audio.stop() } else { audio.preview(sound) }
+            if audio.isPlaying { audio.stop() } else { audio.preview(sound, customSounds: settings.settings.customSounds) }
         } label: {
             Image(systemName: audio.isPlaying ? "stop.circle" : "play.circle")
         }
         .buttonStyle(.borderless)
         .help(audio.isPlaying ? "Stop" : "Preview sound")
         .disabled(sound == .none)
+    }
+
+    // MARK: Custom sound actions
+
+    private var customSoundErrorShown: Binding<Bool> {
+        Binding(get: { customSoundError != nil }, set: { if !$0 { customSoundError = nil } })
+    }
+
+    private func refreshMissingCustomSounds() {
+        missingCustomSoundIDs = library.missingIDs(in: settings.settings.customSounds)
+    }
+
+    private func handleCustomSoundImport(_ result: Result<URL, Error>) {
+        switch result {
+        case .success(let url):
+            Task {
+                do {
+                    // Append to the live array *after* the await, so two quick
+                    // imports can't clobber each other with a stale snapshot.
+                    let sound = try await library.importFile(from: url)
+                    settings.settings.customSounds.append(sound)
+                    refreshMissingCustomSounds()
+                } catch {
+                    customSoundError = error.localizedDescription
+                }
+            }
+        case .failure(let error):
+            customSoundError = error.localizedDescription
+        }
+    }
+
+    /// Delete a custom sound: stop it if previewing, remove its file and metadata,
+    /// then sweep every selection that referenced it (default sound and per-prayer
+    /// overrides) so no prayer is left pointing at a deleted sound.
+    private func deleteCustomSound(_ cs: CustomSound) {
+        if audio.isPlaying { audio.stop() }
+        library.deleteFile(cs)
+        settings.settings.customSounds.removeAll { $0.id == cs.id }
+
+        let target = NotificationSound.custom(cs.id)
+        if settings.settings.notificationDefaults.sound == target {
+            settings.settings.notificationDefaults.sound = .takbir
+        }
+        for prayer in Array(settings.settings.notifications.keys)
+        where settings.settings.notifications[prayer]?.soundOverride == target {
+            settings.settings.notifications[prayer]?.soundOverride = nil
+        }
+        refreshMissingCustomSounds()
     }
 
     private func toggleExpanded(_ prayer: Prayer) {
@@ -238,6 +351,23 @@ struct NotificationsTab: View {
         Binding(
             get: { settings.settings.notifications[prayer] ?? PrayerNotificationConfig() },
             set: { settings.settings.notifications[prayer] = $0 }
+        )
+    }
+
+    /// The matrix "Adhan" toggle. Shows the effective value (per-prayer override,
+    /// else the global "Play full Adhan audio" default) and writes an explicit
+    /// override when flipped.
+    private func adhanBinding(for prayer: Prayer) -> Binding<Bool> {
+        Binding(
+            get: {
+                let cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+                return cfg.playFullAdhanOverride ?? settings.settings.notificationDefaults.playFullAdhan
+            },
+            set: { on in
+                var cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+                cfg.playFullAdhanOverride = on
+                settings.settings.notifications[prayer] = cfg
+            }
         )
     }
 
