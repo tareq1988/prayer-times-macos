@@ -4,6 +4,15 @@ All notable changes to Prayer Times are documented here. This project adheres to
 [Semantic Versioning](https://semver.org) and the
 [Keep a Changelog](https://keepachangelog.com) format.
 
+## [Unreleased]
+
+### Added
+- **"Time running out" reminder.** A second kind of reminder that fires a chosen number of minutes before a prayer's *last recommended* time rather than its astronomical end: Fajr 10 minutes before sunrise, Dhuhr until Asr, Asr 20 minutes before sunset (the makruh stretch), Maghrib until Isha, Isha until Islamic midnight (or Fajr). Lead time and per-prayer switches live in Notifications; the Asr margin and the Isha rule in Calculation → Prayer windows. The menu bar's "time left" mode now counts down to the same cut-off.
+- **Automatic location keeps itself current.** In Automatic mode the location is re-detected every 30 minutes and right after the Mac wakes from sleep, so the times follow you when you travel with the app left running. The dropdown panel shows how old the fix is and when the next check is due (click that line to recheck now), and Settings → Location & time shows the place, coordinates and elevation on one line (opens in Google Maps) with when it was updated, the next check, and a Recheck now button. The panel's coordinates line opens the spot in Google Maps too. The last fix is remembered across relaunches, so the app starts from where it last was instead of from nothing, and a rebuilt app whose location permission macOS reset asks again instead of silently doing nothing.
+
+### Fixed
+- **Notification changes apply immediately.** Changing a reminder lead, a sound, or a per-prayer switch re-arms the schedule at once, instead of at the next day rollover or relaunch.
+
 ## [0.6.1] - 2026-08-30
 
 ### Fixed

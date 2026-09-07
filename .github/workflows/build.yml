@@ -1,0 +1,48 @@
+name: Build
+
+# Dev build on every push: PrayerKit tests, then an ad-hoc-signed .app uploaded
+# as an artifact. Download the zip from the run page, unzip, right-click → Open.
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      APP_NAME: "Prayer Times"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 26
+        run: |
+          set -euo pipefail
+          XC="$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XC"
+          xcodebuild -version
+
+      - name: PrayerKit tests
+        run: swift test --package-path PrayerKit
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build (arm64, ad-hoc signed)
+        run: |
+          set -euo pipefail
+          xcodebuild -project PrayerTimes.xcodeproj -scheme PrayerTimes -configuration Release \
+            -destination 'generic/platform=macOS' -derivedDataPath "$RUNNER_TEMP/dd" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES \
+            ENABLE_HARDENED_RUNTIME=NO -quiet build
+          test -x "$RUNNER_TEMP/dd/Build/Products/Release/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+          ditto -c -k --keepParent "$RUNNER_TEMP/dd/Build/Products/Release/$APP_NAME.app" "$RUNNER_TEMP/PrayerTimes.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PrayerTimes-run${{ github.run_number }}-${{ github.sha }}
+          path: ${{ runner.temp }}/PrayerTimes.zip

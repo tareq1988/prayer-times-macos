@@ -5261,6 +5261,688 @@
           }
         }
       }
+    },
+    "Locating…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "جارٍ تحديد الموقع…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অবস্থান খোঁজা হচ্ছে…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum bulunuyor…"
+          }
+        }
+      }
+    },
+    "Location unavailable. Click to retry.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الموقع غير متاح. انقر لإعادة المحاولة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অবস্থান পাওয়া যায়নি। আবার চেষ্টা করতে ক্লিক করুন।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum alınamadı. Yeniden denemek için tıklayın."
+          }
+        }
+      }
+    },
+    "Location not detected yet": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لم يتم تحديد الموقع بعد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অবস্থান এখনও শনাক্ত হয়নি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum henüz bulunamadı"
+          }
+        }
+      }
+    },
+    "Location unavailable. Recheck in %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الموقع غير متاح. إعادة الفحص خلال %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অবস্থান পাওয়া যায়নি। %@ পরে আবার যাচাই"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum alınamadı. %@ sonra yeniden denenecek"
+          }
+        }
+      }
+    },
+    "Location recheck in %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إعادة فحص الموقع خلال %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ পরে অবস্থান আবার যাচাই"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum %@ sonra yeniden kontrol edilecek"
+          }
+        }
+      }
+    },
+    "Location recheck due": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حان وقت إعادة فحص الموقع"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "অবস্থান আবার যাচাইয়ের সময় হয়েছে"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konum yeniden kontrol edilecek"
+          }
+        }
+      }
+    },
+    "Open in Google Maps": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "فتح في خرائط Google"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Google Maps-এ খুলুন"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Google Haritalar'da aç"
+          }
+        }
+      }
+    },
+    "Recheck the location now": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إعادة فحص الموقع الآن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনই অবস্থান আবার যাচাই করুন"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Konumu şimdi yeniden kontrol et"
+          }
+        }
+      }
+    },
+    "%@: %lld min left": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@: تبقّى %2$lld دقيقة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@: %2$lld মিনিট বাকি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@: %2$lld dk kaldı"
+          }
+        }
+      }
+    },
+    "%lld min left": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تبقّى %lld دقيقة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld মিনিট বাকি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld dk kaldı"
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld د"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld মিনিট"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld dk"
+          }
+        }
+      }
+    },
+    "Pray before %@ (sunrise %@).": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صلِّ قبل %1$@ (الشروق %2$@)."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@-এর আগে পড়ুন (সূর্যোদয় %2$@)।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ öncesinde kılın (gün doğumu %2$@)."
+          }
+        }
+      }
+    },
+    "Pray before %@, makruh after that (sunset %@).": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صلِّ قبل %1$@، وبعده وقت مكروه (الغروب %2$@)."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@-এর আগে পড়ুন, এরপর মাকরূহ সময় (সূর্যাস্ত %2$@)।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ öncesinde kılın, sonrası mekruh (gün batımı %2$@)."
+          }
+        }
+      }
+    },
+    "Pray before %@ (Islamic midnight).": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "صلِّ قبل %@ (منتصف الليل الشرعي)."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@-এর আগে পড়ুন (ইসলামি মধ্যরাত)।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%@ öncesinde kılın (şer'i gece yarısı)."
+          }
+        }
+      }
+    },
+    "%@ begins at %@.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "يبدأ %1$@ في %2$@."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ শুরু হবে %2$@-এ।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ %2$@'de başlıyor."
+          }
+        }
+      }
+    },
+    "Time running out": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الوقت يوشك على الانتهاء"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সময় শেষ হয়ে আসছে"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vakit daralıyor"
+          }
+        }
+      }
+    },
+    "Ending": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الانتهاء"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "শেষ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Bitiş"
+          }
+        }
+      }
+    },
+    "Prayer windows": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "حدود أوقات الصلاة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "নামাজের সময়সীমা"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Namaz vakti sınırları"
+          }
+        }
+      }
+    },
+    "Asr ends before sunset": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ينتهي العصر قبل الغروب بـ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "সূর্যাস্তের আগে আসর শেষ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "İkindi gün batımından önce biter"
+          }
+        }
+      }
+    },
+    "Isha ends at": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ينتهي العشاء عند"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এশা শেষ হয়"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Yatsı bitişi"
+          }
+        }
+      }
+    },
+    "Islamic midnight": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "منتصف الليل الشرعي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ইসলামি মধ্যরাত"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Şer'i gece yarısı"
+          }
+        }
+      }
+    },
+    "Used by the “Time running out” reminder and the time-left countdown. Asr in the last minutes before sunset is disliked (makruh); Islamic midnight is halfway from sunset to Fajr.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "تُستخدم في تذكير «الوقت يوشك على الانتهاء» وفي العدّ التنازلي للوقت المتبقي. صلاة العصر في الدقائق الأخيرة قبل الغروب مكروهة؛ ومنتصف الليل الشرعي هو منتصف ما بين الغروب والفجر."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "“সময় শেষ হয়ে আসছে” রিমাইন্ডার ও বাকি সময়ের কাউন্টডাউনে ব্যবহৃত। সূর্যাস্তের শেষ মিনিটগুলোতে আসর মাকরূহ; ইসলামি মধ্যরাত হলো সূর্যাস্ত ও ফজরের মাঝামাঝি।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "“Vakit daralıyor” hatırlatması ve kalan süre sayacı için kullanılır. Gün batımından önceki son dakikalarda ikindi mekruhtur; şer'i gece yarısı gün batımı ile imsak arasının ortasıdır."
+          }
+        }
+      }
+    },
+    "“Time running out” warns before a prayer's last recommended time; the rules are under Calculation → Prayer windows.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "«الوقت يوشك على الانتهاء» ينبّه قبل آخر وقت مستحب للصلاة؛ القواعد في الحساب ← حدود أوقات الصلاة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "“সময় শেষ হয়ে আসছে” নামাজের শেষ সুপারিশকৃত সময়ের আগে সতর্ক করে; নিয়ম আছে গণনা → নামাজের সময়সীমায়।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "“Vakit daralıyor”, namazın son tavsiye edilen vaktinden önce uyarır; kurallar Hesaplama → Namaz vakti sınırları altında."
+          }
+        }
+      }
+    },
+    "Updated": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "آخر تحديث"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "হালনাগাদ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Güncellendi"
+          }
+        }
+      }
+    },
+    "Recheck now": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "إعادة الفحص الآن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনই আবার যাচাই"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Şimdi yeniden kontrol et"
+          }
+        }
+      }
+    },
+    "Not detected yet": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لم يُحدَّد بعد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনও শনাক্ত হয়নি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Henüz bulunamadı"
+          }
+        }
+      }
+    },
+    "Never": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "أبدًا"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "কখনো নয়"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Hiç"
+          }
+        }
+      }
+    },
+    "%@ · next check %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ · الفحص التالي %2$@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ · পরবর্তী যাচাই %2$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%1$@ · sonraki kontrol %2$@"
+          }
+        }
+      }
+    },
+    "due now": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الآن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "এখনই"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "şimdi"
+          }
+        }
+      }
+    },
+    "%lld m": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld م"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld মি"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "%lld m"
+          }
+        }
+      }
+    },
+    "Map": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "الخريطة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "মানচিত্র"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Harita"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

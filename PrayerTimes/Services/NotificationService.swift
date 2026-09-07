@@ -113,7 +113,10 @@ final class NotificationService: NSObject {
         let azanBefore = manual ? Double(max(0, settings.azanBeforeJamaat)) * 60 : 0
 
         var requests: [UNNotificationRequest] = []
-        for day in [today, tomorrow] {
+        // Isha's cut-off (window rules) needs the following day's Fajr, so
+        // tomorrow's Isha is scheduled at the next day rollover instead.
+        let days: [(day: PrayerTimes, nextFajr: Date?)] = [(today, tomorrow[.fajr]), (tomorrow, nil)]
+        for (day, nextFajr) in days {
             let dayKey = Self.dayKey(day.date, in: timeZone)
             for (prayer, time) in day.times {
                 let cfg = settings.resolvedNotification(for: prayer)
@@ -165,6 +168,23 @@ final class NotificationService: NSObject {
                         categoryID: nil
                     ))
                 }
+
+                // "Time running out": `endLeadMinutes` before the prayer's last
+                // recommended time under the window rules. Calculated mode only;
+                // a fixed jamaat schedule has no meaningful window end.
+                if cfg.endReminderEnabled, !manual,
+                   let deadline = day.deadline(for: prayer, nextFajr: nextFajr, rules: settings.windowRules) {
+                    let name = PrayerFormatting.name(prayer)
+                    requests.append(contentsOf: request(
+                        id: "END-\(dayKey)-\(prayer.rawValue)",
+                        fireAt: deadline.addingTimeInterval(Double(-cfg.endLeadMinutes) * 60), now: now,
+                        title: String(localized: "\(name): \(cfg.endLeadMinutes) min left"),
+                        body: endReminderBody(prayer, day: day, deadline: deadline,
+                                              rules: settings.windowRules, timeZone: timeZone),
+                        sound: .default,
+                        categoryID: nil
+                    ))
+                }
             }
         }
 
@@ -178,6 +198,31 @@ final class NotificationService: NSObject {
         }
         let authState = settings.masterNotificationsEnabled ? "on" : "off"
         log.notice("Scheduled \(requests.count) notifications (master=\(authState, privacy: .public))")
+    }
+
+    /// Says what the cut-off is, so the user knows what "left" means.
+    private func endReminderBody(_ prayer: Prayer, day: PrayerTimes, deadline: Date,
+                                 rules: WindowRules, timeZone: TimeZone) -> String {
+        let at = PrayerFormatting.clock(deadline, in: timeZone)
+        func clock(_ p: Prayer) -> String { day[p].map { PrayerFormatting.clock($0, in: timeZone) } ?? "" }
+        switch prayer {
+        case .fajr:
+            return String(localized: "Pray before \(at) (sunrise \(clock(.sunrise))).")
+        case .asr where rules.asrEndMarginMinutes > 0:
+            return String(localized: "Pray before \(at), makruh after that (sunset \(clock(.maghrib))).")
+        case .isha where rules.ishaEnd == .islamicMidnight:
+            return String(localized: "Pray before \(at) (Islamic midnight).")
+        case .dhuhr:
+            return String(localized: "\(PrayerFormatting.name(.asr)) begins at \(at).")
+        case .asr:
+            return String(localized: "\(PrayerFormatting.name(.maghrib)) begins at \(at).")
+        case .maghrib:
+            return String(localized: "\(PrayerFormatting.name(.isha)) begins at \(at).")
+        case .isha:
+            return String(localized: "\(PrayerFormatting.name(.fajr)) begins at \(at).")
+        case .sunrise:
+            return ""
+        }
     }
 
     // MARK: Building requests

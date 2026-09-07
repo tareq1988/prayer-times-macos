@@ -173,16 +173,60 @@ struct MenuBarPanel: View {
     private var summary: some View {
         VStack(alignment: .leading, spacing: 3) {
             Label(clock.methodName, systemImage: "moon.circle")
-            Label(
-                String(format: "%.4f, %.4f · %@",
-                       clock.coordinates.latitude, clock.coordinates.longitude,
-                       clock.timeZone.identifier),
-                systemImage: "location"
-            )
+
+            // Coordinates, timezone and (automatic mode) the age of the fix.
+            // Opens the spot in Google Maps.
+            Button { clock.openLocationInMaps() } label: {
+                HStack(spacing: 4) {
+                    Label(locationLine, systemImage: "location")
+                    Image(systemName: "arrow.up.right.square")
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Open in Google Maps")
+
+            if clock.usesAutomaticLocation {
+                Button { clock.refreshLocation() } label: {
+                    Label(recheckLine, systemImage: "clock.arrow.circlepath")
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(clock.isDetectingLocation)
+                .help("Recheck the location now")
+            }
         }
         .font(.caption)
         .foregroundStyle(.secondary)
         .labelStyle(.titleAndIcon)
+    }
+
+    /// "51.5074, -0.1278 (Europe/London) · 12 min. ago". The age re-renders
+    /// with `clock.now`, so it stays current while the panel is open.
+    private var locationLine: String {
+        var line = String(format: "%.4f, %.4f (%@)",
+                          clock.coordinates.latitude, clock.coordinates.longitude,
+                          clock.timeZone.identifier)
+        if clock.usesAutomaticLocation, let at = clock.locationDetectedAt {
+            line += " · " + PrayerFormatting.relative(at, to: clock.now)
+        }
+        return line
+    }
+
+    /// When the automatic location is next re-detected, or why there is no fix.
+    private var recheckLine: String {
+        if clock.isDetectingLocation { return String(localized: "Locating…") }
+        let wait = clock.locationNextCheckAt.timeIntervalSince(clock.now)
+        let countdown = PrayerFormatting.shortCountdown(wait)
+        if clock.locationError != nil {
+            return wait > 0
+                ? String(localized: "Location unavailable. Recheck in \(countdown)")
+                : String(localized: "Location unavailable. Click to retry.")
+        }
+        if clock.locationDetectedAt == nil { return String(localized: "Location not detected yet") }
+        return wait > 0
+            ? String(localized: "Location recheck in \(countdown)")
+            : String(localized: "Location recheck due")
     }
 
     // MARK: Footer

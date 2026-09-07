@@ -45,15 +45,16 @@ struct MenuBarLabel: View {
             return style.showsName ? PrayerFormatting.name(next.prayer).nilIfEmpty : nil
 
         case .countdown:
-            // "Time left in current waqt" mode counts down to the close of the
-            // active window, but only while an obligatory prayer is in progress.
-            // In the sunrise→Dhuhr gap (no obligatory waqt) it falls back to the
+            // "Time left in current waqt" mode counts down to the active prayer's
+            // cut-off under the window rules (e.g. Asr 20 min before sunset), the
+            // same instant the time-running-out reminder uses. In the sunrise→
+            // Dhuhr gap, or once the cut-off has passed, it falls back to the
             // next-prayer countdown so the label stays meaningful.
             if settings.settings.menuBarCountdownMode == .currentWaqt,
-               let waqt = clock.currentWaqt, waqt.isObligatory {
-                let cd = PrayerFormatting.shortCountdown(max(0, waqt.end.timeIntervalSince(clock.now)))
+               let window = clock.currentWindow {
+                let cd = PrayerFormatting.shortCountdown(max(0, window.deadline.timeIntervalSince(clock.now)))
                 if style.showsName {
-                    let name = PrayerFormatting.name(waqt.prayer)
+                    let name = PrayerFormatting.name(window.prayer)
                     return String(localized: "\(name) \(cd) left", comment: "Menu bar: current prayer + time left in its window, e.g. 'Asr 40m left'")
                 }
                 return String(localized: "\(cd) left", comment: "Menu bar: time left in the current prayer window, e.g. '40m left'")

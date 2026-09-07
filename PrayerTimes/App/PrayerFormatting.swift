@@ -95,6 +95,20 @@ enum PrayerFormatting {
         return f
     }()
 
+    /// Google Maps at the coordinates (search form: opens in the browser, no app needed).
+    static func googleMapsURL(_ c: Coordinates) -> URL? {
+        URL(string: String(format: "https://www.google.com/maps/search/?api=1&query=%.5f,%.5f", c.latitude, c.longitude))
+    }
+
+    /// Localized "12 min. ago" phrase for a past instant. Built per call:
+    /// `RelativeDateTimeFormatter` is not Sendable, so it cannot be a cached static.
+    static func relative(_ date: Date, to now: Date) -> String {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .short
+        f.dateTimeStyle = .named   // "now" instead of "in 0 sec."
+        return f.localizedString(for: date, relativeTo: now)
+    }
+
     /// Plain integer formatting (no grouping separators) for the day and year.
     private static let plainNumberFormatter: NumberFormatter = {
         let f = NumberFormatter()

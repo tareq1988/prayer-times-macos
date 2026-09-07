@@ -81,6 +81,11 @@ struct NotificationsTab: View {
                     Text(Self.reminderLabel(m)).tag(m)
                 }
             }
+            Picker("Time running out", selection: $settings.settings.notificationDefaults.endReminderMinutes) {
+                ForEach(Self.endReminderOptions, id: \.self) { m in
+                    Text(Self.endLabel(m)).tag(m)
+                }
+            }
             Stepper(value: $settings.settings.notificationDefaults.iqamahOffsetMinutes, in: 0...45) {
                 HStack {
                     Text("Iqamah / jamaat offset")
@@ -92,7 +97,10 @@ struct NotificationsTab: View {
         } header: {
             Text("Defaults")
         } footer: {
-            Text("Applied to every prayer. Expand a prayer below to override its sound, reminder, or iqamah.")
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Applied to every prayer. Expand a prayer below to override its sound, reminder, or iqamah.")
+                Text("“Time running out” warns before a prayer's last recommended time; the rules are under Calculation → Prayer windows.")
+            }
         }
     }
 
@@ -107,6 +115,7 @@ struct NotificationsTab: View {
                 Text("Notify").frame(width: Self.colWidth)
                 Text("Adhan").frame(width: Self.colWidth)
                 Text("Remind").frame(width: Self.colWidth)
+                Text("Ending").frame(width: Self.colWidth)
                 Spacer().frame(width: Self.gearWidth)
             }
             .font(.caption2.weight(.semibold))
@@ -145,6 +154,16 @@ struct NotificationsTab: View {
             // Remind
             Toggle("", isOn: remindBinding(for: prayer)).labelsHidden().controlSize(.mini)
                 .frame(width: Self.colWidth)
+
+            // Ending — "time running out" (obligatory only; Sunrise has no window)
+            Group {
+                if prayer.isObligatory {
+                    Toggle("", isOn: endingBinding(for: prayer)).labelsHidden().controlSize(.mini)
+                } else {
+                    Text("—").foregroundStyle(.tertiary)
+                }
+            }
+            .frame(width: Self.colWidth)
 
             // Override disclosure (obligatory only — Sunrise has nothing to override)
             Group {
@@ -191,6 +210,13 @@ struct NotificationsTab: View {
                     Text(Self.reminderLabel(m)).tag(Int?.some(m))
                 }
             }
+            Picker("Time running out", selection: cfg.endLeadMinutesOverride) {
+                Text(inheritLabel(Self.endLabel(settings.settings.notificationDefaults.endReminderMinutes)))
+                    .tag(Int?.none)
+                ForEach(Self.endReminderOptions, id: \.self) { m in
+                    Text(Self.endLabel(m)).tag(Int?.some(m))
+                }
+            }
             Picker("Iqamah / jamaat offset", selection: cfg.iqamahOffsetMinutesOverride) {
                 Text(inheritLabel(Self.offsetLabel(settings.settings.notificationDefaults.iqamahOffsetMinutes)))
                     .tag(Int?.none)
@@ -220,9 +246,10 @@ struct NotificationsTab: View {
 
     // MARK: Layout / option constants
 
-    private static let colWidth: CGFloat = 52
+    private static let colWidth: CGFloat = 50
     private static let gearWidth: CGFloat = 28
     private static let reminderOptions = [0, 5, 10, 15, 30]
+    private static let endReminderOptions = [0, 5, 10, 15, 20, 30, 45, 60]
     private static let iqamahOptions = [0, 5, 10, 15, 20, 25, 30, 45]
 
     private static func reminderLabel(_ m: Int) -> String {
@@ -230,6 +257,9 @@ struct NotificationsTab: View {
     }
     private static func offsetLabel(_ m: Int) -> String {
         m == 0 ? String(localized: "Off") : String(localized: "+\(m) min")
+    }
+    private static func endLabel(_ m: Int) -> String {
+        m == 0 ? String(localized: "Off") : String(localized: "\(m) min left")
     }
 
     // MARK: Bindings & helpers
@@ -253,6 +283,21 @@ struct NotificationsTab: View {
                 cfg.earlyReminderEnabled = on
                 if on, settings.settings.earlyLeadMinutes(for: prayer) <= 0 {
                     cfg.earlyLeadMinutesOverride = AppSettings.fallbackEarlyLeadMinutes
+                }
+                settings.settings.notifications[prayer] = cfg
+            }
+        )
+    }
+
+    /// The matrix "Ending" toggle; seeds a concrete lead like `remindBinding`.
+    private func endingBinding(for prayer: Prayer) -> Binding<Bool> {
+        Binding(
+            get: { settings.settings.notifications[prayer]?.endReminderEnabled ?? false },
+            set: { on in
+                var cfg = settings.settings.notifications[prayer] ?? PrayerNotificationConfig()
+                cfg.endReminderEnabled = on
+                if on, settings.settings.endLeadMinutes(for: prayer) <= 0 {
+                    cfg.endLeadMinutesOverride = AppSettings.fallbackEndLeadMinutes
                 }
                 settings.settings.notifications[prayer] = cfg
             }

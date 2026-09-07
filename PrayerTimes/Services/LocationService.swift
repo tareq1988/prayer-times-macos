@@ -65,13 +65,16 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
     struct PlaceInfo: Sendable {
         var countryCode: String?
         var timeZone: TimeZone?
+        /// City / town, for display only.
+        var locality: String?
     }
 
     /// Reverse-geocode a location into its country code and timezone. CLGeocoder
     /// is rate-limited, so we resolve both from one request.
     func place(for location: CLLocation) async -> PlaceInfo {
         let placemark = try? await geocoder.reverseGeocodeLocation(location).first
-        return PlaceInfo(countryCode: placemark?.isoCountryCode, timeZone: placemark?.timeZone)
+        return PlaceInfo(countryCode: placemark?.isoCountryCode, timeZone: placemark?.timeZone,
+                         locality: placemark?.locality)
     }
 
     // MARK: Continuation plumbing

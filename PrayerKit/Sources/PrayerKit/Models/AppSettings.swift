@@ -107,17 +107,22 @@ public struct NotificationDefaults: Codable, Sendable, Equatable, Hashable {
     public var earlyReminderMinutes: Int
     /// Minutes after the prayer for the iqamah alert; 0 = off.
     public var iqamahOffsetMinutes: Int
+    /// Minutes before a prayer's last recommended time (`WindowRules`) for the
+    /// "time running out" reminder; 0 = off.
+    public var endReminderMinutes: Int
 
     public init(
         sound: NotificationSound = .takbir,
         playFullAdhan: Bool = false,
         earlyReminderMinutes: Int = 0,
-        iqamahOffsetMinutes: Int = 0
+        iqamahOffsetMinutes: Int = 0,
+        endReminderMinutes: Int = 0
     ) {
         self.sound = sound
         self.playFullAdhan = playFullAdhan
         self.earlyReminderMinutes = earlyReminderMinutes
         self.iqamahOffsetMinutes = iqamahOffsetMinutes
+        self.endReminderMinutes = endReminderMinutes
     }
 
     public init(from decoder: Decoder) throws {
@@ -127,6 +132,7 @@ public struct NotificationDefaults: Codable, Sendable, Equatable, Hashable {
         playFullAdhan = try c.decodeIfPresent(Bool.self, forKey: .playFullAdhan) ?? d.playFullAdhan
         earlyReminderMinutes = try c.decodeIfPresent(Int.self, forKey: .earlyReminderMinutes) ?? d.earlyReminderMinutes
         iqamahOffsetMinutes = try c.decodeIfPresent(Int.self, forKey: .iqamahOffsetMinutes) ?? d.iqamahOffsetMinutes
+        endReminderMinutes = try c.decodeIfPresent(Int.self, forKey: .endReminderMinutes) ?? d.endReminderMinutes
     }
 }
 
@@ -141,6 +147,10 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
     public var playFullAdhan: Bool
     /// Matrix "Remind" — fire the early reminder.
     public var earlyReminderEnabled: Bool
+    /// Matrix "Ending" — fire the "time running out" reminder. On by default:
+    /// the feature is switched on once by setting the default lead, and this
+    /// only excludes a prayer from it.
+    public var endReminderEnabled: Bool
 
     /// Drawer "Sound" — `nil` inherits `NotificationDefaults.sound`.
     public var soundOverride: NotificationSound?
@@ -148,21 +158,27 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
     public var earlyLeadMinutesOverride: Int?
     /// Drawer "Iqamah / jamaat offset" — `nil` inherits the default offset.
     public var iqamahOffsetMinutesOverride: Int?
+    /// Drawer "Time running out" lead minutes — `nil` inherits the default lead.
+    public var endLeadMinutesOverride: Int?
 
     public init(
         notify: Bool = true,
         playFullAdhan: Bool = false,
         earlyReminderEnabled: Bool = false,
+        endReminderEnabled: Bool = true,
         soundOverride: NotificationSound? = nil,
         earlyLeadMinutesOverride: Int? = nil,
-        iqamahOffsetMinutesOverride: Int? = nil
+        iqamahOffsetMinutesOverride: Int? = nil,
+        endLeadMinutesOverride: Int? = nil
     ) {
         self.notify = notify
         self.playFullAdhan = playFullAdhan
         self.earlyReminderEnabled = earlyReminderEnabled
+        self.endReminderEnabled = endReminderEnabled
         self.soundOverride = soundOverride
         self.earlyLeadMinutesOverride = earlyLeadMinutesOverride
         self.iqamahOffsetMinutesOverride = iqamahOffsetMinutesOverride
+        self.endLeadMinutesOverride = endLeadMinutesOverride
     }
 
     /// Resilient decode so an older persisted blob (whose per-prayer keys differ)
@@ -177,6 +193,8 @@ public struct PrayerNotificationConfig: Codable, Sendable, Equatable, Hashable {
         soundOverride = try c.decodeIfPresent(NotificationSound.self, forKey: .soundOverride)
         earlyLeadMinutesOverride = try c.decodeIfPresent(Int.self, forKey: .earlyLeadMinutesOverride)
         iqamahOffsetMinutesOverride = try c.decodeIfPresent(Int.self, forKey: .iqamahOffsetMinutesOverride)
+        endReminderEnabled = try c.decodeIfPresent(Bool.self, forKey: .endReminderEnabled) ?? d.endReminderEnabled
+        endLeadMinutesOverride = try c.decodeIfPresent(Int.self, forKey: .endLeadMinutesOverride)
     }
 }
 
@@ -190,6 +208,8 @@ public struct ResolvedNotification: Sendable, Equatable, Hashable {
     public var earlyReminderEnabled: Bool
     public var earlyLeadMinutes: Int
     public var iqamahOffsetMinutes: Int
+    public var endReminderEnabled: Bool
+    public var endLeadMinutes: Int
 }
 
 /// The full persisted configuration blob (§8). Stored in UserDefaults / the App
@@ -237,6 +257,8 @@ public struct AppSettings: Codable, Sendable, Equatable {
     public var masterNotificationsEnabled: Bool     // global on/off (spec §7.6)
     public var notificationDefaults: NotificationDefaults
     public var notifications: [Prayer: PrayerNotificationConfig]
+    /// When each prayer counts as ending (time-running-out reminder, time-left countdown).
+    public var windowRules: WindowRules
     public var autoUpdateEnabled: Bool
     /// Whether the first-launch setup wizard has been completed (or skipped). New
     /// installs start `false` so the wizard runs once; existing users are migrated
@@ -271,6 +293,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         masterNotificationsEnabled: Bool = true,
         notificationDefaults: NotificationDefaults = NotificationDefaults(),
         notifications: [Prayer: PrayerNotificationConfig] = AppSettings.defaultNotifications,
+        windowRules: WindowRules = WindowRules(),
         autoUpdateEnabled: Bool = true,
         didCompleteOnboarding: Bool = false
     ) {
@@ -301,6 +324,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         self.masterNotificationsEnabled = masterNotificationsEnabled
         self.notificationDefaults = notificationDefaults
         self.notifications = notifications
+        self.windowRules = windowRules
         self.autoUpdateEnabled = autoUpdateEnabled
         self.didCompleteOnboarding = didCompleteOnboarding
     }
@@ -342,6 +366,7 @@ public struct AppSettings: Codable, Sendable, Equatable {
         masterNotificationsEnabled = try get(.masterNotificationsEnabled, d.masterNotificationsEnabled)
         notificationDefaults = try get(.notificationDefaults, d.notificationDefaults)
         notifications = try get(.notifications, d.notifications)
+        windowRules = try get(.windowRules, d.windowRules)
         autoUpdateEnabled = try get(.autoUpdateEnabled, d.autoUpdateEnabled)
         didCompleteOnboarding = try get(.didCompleteOnboarding, d.didCompleteOnboarding)
     }
@@ -360,12 +385,23 @@ public struct AppSettings: Codable, Sendable, Equatable {
         notifications[prayer]?.earlyLeadMinutesOverride ?? notificationDefaults.earlyReminderMinutes
     }
 
+    /// Fallback lead seeded when "Ending" is switched on with no concrete lead
+    /// (same idea as `fallbackEarlyLeadMinutes`).
+    public static let fallbackEndLeadMinutes = 20
+
+    /// Effective "time running out" lead for `prayer`: the per-prayer override,
+    /// else the global default. May be 0 (meaning "no lead set").
+    public func endLeadMinutes(for prayer: Prayer) -> Int {
+        notifications[prayer]?.endLeadMinutesOverride ?? notificationDefaults.endReminderMinutes
+    }
+
     /// Merge a prayer's per-prayer config over the app defaults into the concrete
     /// values the scheduler uses. A reminder fires only when it is enabled *and*
     /// resolves to a positive lead. Sunrise never carries Adhan or iqamah.
     public func resolvedNotification(for prayer: Prayer) -> ResolvedNotification {
         let cfg = notifications[prayer] ?? PrayerNotificationConfig()
         let lead = earlyLeadMinutes(for: prayer)
+        let endLead = endLeadMinutes(for: prayer)
         let iqamah = prayer.isObligatory
             ? (cfg.iqamahOffsetMinutesOverride ?? notificationDefaults.iqamahOffsetMinutes)
             : 0
@@ -375,7 +411,9 @@ public struct AppSettings: Codable, Sendable, Equatable {
             playFullAdhan: prayer.isObligatory && cfg.playFullAdhan,
             earlyReminderEnabled: cfg.earlyReminderEnabled && lead > 0,
             earlyLeadMinutes: max(1, lead),
-            iqamahOffsetMinutes: max(0, iqamah)
+            iqamahOffsetMinutes: max(0, iqamah),
+            endReminderEnabled: prayer.isObligatory && cfg.endReminderEnabled && endLead > 0,
+            endLeadMinutes: max(1, endLead)
         )
     }
 

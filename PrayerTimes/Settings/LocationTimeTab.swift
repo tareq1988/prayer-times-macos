@@ -21,41 +21,44 @@ struct LocationTimeTab: View {
                 }
                 .pickerStyle(.segmented)
 
+                // Automatic mode: a compact read-only summary (where, and how
+                // fresh). The coordinates open in Google Maps; the age re-renders
+                // every 30 s so it stays honest while the window is open. Manual
+                // mode exposes editable fields.
                 if settings.settings.locationMode == .automatic {
-                    HStack {
-                        Spacer()
-                        if settings.isDetectingLocation {
-                            ProgressView().controlSize(.small)
+                    LabeledContent("Location") {
+                        if settings.detectedCoordinates != nil,
+                           let url = PrayerFormatting.googleMapsURL(settings.resolvedCoordinates) {
+                            Link(destination: url) {
+                                HStack(spacing: 4) {
+                                    Text(locationSummary)
+                                    Image(systemName: "arrow.up.right.square")
+                                }
+                            }
+                            .help("Open in Google Maps")
+                        } else {
+                            Text("Not detected yet").foregroundStyle(.secondary)
                         }
-                        Button {
-                            Task { await settings.detectLocation() }
-                        } label: {
-                            Label("Detect my location", systemImage: "location.fill")
+                    }
+                    LabeledContent("Updated") {
+                        HStack(spacing: 8) {
+                            TimelineView(.periodic(from: .now, by: 30)) { context in
+                                Text(updatedSummary(now: context.date)).foregroundStyle(.secondary)
+                            }
+                            if settings.isDetectingLocation {
+                                ProgressView().controlSize(.small)
+                            }
+                            Button("Recheck now") { Task { await settings.detectLocation() } }
+                                .disabled(settings.isDetectingLocation)
                         }
-                        .disabled(settings.isDetectingLocation)
                     }
                     if let error = settings.locationError {
                         Text(error).font(.caption).foregroundStyle(.red)
-                    } else if settings.detectedCoordinates == nil {
-                        Text("Detect your location to compute prayer times for where you are.")
-                            .font(.caption).foregroundStyle(.secondary)
                     }
                     if let warning = settings.timeZoneMismatchWarning {
                         Label(warning, systemImage: "exclamationmark.triangle.fill")
                             .font(.caption).foregroundStyle(.orange)
                     }
-                }
-
-                // Automatic mode uses the detected coordinates (shown read-only so
-                // they can't drift from the location the times are computed for);
-                // manual mode exposes editable fields.
-                if settings.settings.locationMode == .automatic {
-                    LabeledContent("Latitude",
-                        value: String(format: "%.4f", settings.resolvedCoordinates.latitude))
-                    LabeledContent("Longitude",
-                        value: String(format: "%.4f", settings.resolvedCoordinates.longitude))
-                    LabeledContent("Elevation (m)",
-                        value: String(format: "%.0f", settings.resolvedCoordinates.elevation))
                 } else {
                     LabeledContent("Latitude") {
                         TextField("Latitude", value: latBinding, format: .number.precision(.fractionLength(0...6)))
@@ -68,6 +71,9 @@ struct LocationTimeTab: View {
                     LabeledContent("Elevation (m)") {
                         TextField("Elevation", value: elevationBinding, format: .number.precision(.fractionLength(0...1)))
                             .labelsHidden().frame(width: 120).multilineTextAlignment(.trailing)
+                    }
+                    if let url = PrayerFormatting.googleMapsURL(settings.resolvedCoordinates) {
+                        LabeledContent("Map") { Link("Open in Google Maps", destination: url) }
                     }
                 }
             }
@@ -123,6 +129,27 @@ struct LocationTimeTab: View {
     }
 
     // MARK: Bindings
+
+    /// "London · 51.5074, -0.1278 · 35 m"
+    private var locationSummary: String {
+        let c = settings.resolvedCoordinates
+        var parts: [String] = []
+        if let city = settings.detectedLocality { parts.append(city) }
+        parts.append(String(format: "%.4f, %.4f", c.latitude, c.longitude))
+        parts.append(String(localized: "\(Int(c.elevation.rounded())) m"))
+        return parts.joined(separator: " · ")
+    }
+
+    /// "3 min. ago · next check 18:22"
+    private func updatedSummary(now: Date) -> String {
+        guard let at = settings.locationDetectedAt else { return String(localized: "Never") }
+        let ago = PrayerFormatting.relative(at, to: now)
+        let next = settings.locationRefresh.nextAttempt
+        let nextText = next <= now
+            ? String(localized: "due now")
+            : PrayerFormatting.clock(next, in: settings.resolvedTimeZone)
+        return String(localized: "\(ago) · next check \(nextText)")
+    }
 
     private var locationModeBinding: Binding<LocationMode> {
         Binding(

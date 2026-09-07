@@ -63,6 +63,25 @@ struct CalculationTab: View {
         }
 
         Section {
+            Stepper(value: $settings.settings.windowRules.asrEndMarginMinutes, in: 0...60, step: 5) {
+                HStack {
+                    Text("Asr ends before sunset")
+                    Spacer(minLength: 12)
+                    Text(String(localized: "\(settings.settings.windowRules.asrEndMarginMinutes) min"))
+                        .monospacedDigit().foregroundStyle(.secondary)
+                }
+            }
+            Picker("Isha ends at", selection: $settings.settings.windowRules.ishaEnd) {
+                Text("Islamic midnight").tag(IshaEnd.islamicMidnight)
+                Text("Fajr").tag(IshaEnd.fajr)
+            }
+        } header: {
+            Text("Prayer windows")
+        } footer: {
+            Text("Used by the “Time running out” reminder and the time-left countdown. Asr in the last minutes before sunset is disliked (makruh); Islamic midnight is halfway from sunset to Fajr.")
+        }
+
+        Section {
             Toggle("Auto-detect method from location", isOn: autoDetectBinding)
         } header: {
             Text("Automation")
