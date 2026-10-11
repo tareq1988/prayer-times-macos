@@ -22,6 +22,7 @@ final class SettingsStore {
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let key = "appSettings.v1"
     @ObservationIgnored private let location: LocationService
+    @ObservationIgnored private let detectionCacheKey = "lastDetectedLocation.v1"
 
     /// True when no settings were persisted yet (a genuine first launch). Lets the
     /// launch path prompt for location permission in automatic mode exactly once,
@@ -30,6 +31,11 @@ final class SettingsStore {
 
     // Runtime auto-detect state (not persisted).
     private(set) var detectedCoordinates: Coordinates?
+    /// The city of the last successful detection (`CLPlacemark.locality`), shown
+    /// under the coordinates in the menu bar panel. nil until the first
+    /// successful reverse geocode, and preserved (not wiped) when a later
+    /// geocode fails.
+    private(set) var detectedCity: String?
     private(set) var detectedCountryCode: String?
     private(set) var detectedTimeZoneID: String?
     private(set) var isDetectingLocation = false
@@ -50,6 +56,7 @@ final class SettingsStore {
         migrateHighLatitudeRuleIfNeeded()
         migrateMenuBarStyleIfNeeded()
         migrateOnboardingIfNeeded(wasFirstRun: loaded == nil)
+        seedDetectionFromCache()
     }
 
     /// The first-launch setup wizard should run on a genuine fresh install only.
@@ -126,6 +133,67 @@ final class SettingsStore {
 
     // MARK: Auto-detect (CoreLocation)
 
+    /// The last *successful* detection, persisted separately from `AppSettings`
+    /// so it survives relaunches. Seeding the runtime state from it means a
+    /// cold start (restart/wake, before CoreLocation can produce a fix) still
+    /// computes times for the real location instead of falling back to the
+    /// Istanbul default while the first fresh fix is pending. It is rewritten on
+    /// every success — only ever a placeholder, never a replacement for a live
+    /// fix — so moving house and re-detecting updates it automatically.
+    ///
+    /// `city` is *optional* so a cache written before it existed (no key in the
+    /// JSON) still decodes — the city simply stays empty until the next
+    /// successful detection rewrites it. Internal (not private) so the tests can
+    /// exercise exactly that legacy-decode path.
+    struct CachedDetection: Codable {
+        var latitude: Double
+        var longitude: Double
+        var elevation: Double
+        var city: String?
+        var countryCode: String?
+        var timeZoneID: String?
+        var detectedAt: Date
+    }
+
+    /// Restore the runtime auto-detect state from the previous successful
+    /// detection, if any. Best-effort: a missing or undecodable cache simply
+    /// means the app behaves as it did before (fresh detection on launch).
+    private func seedDetectionFromCache() {
+        guard let cached = Self.loadDetection(from: defaults, key: detectionCacheKey) else { return }
+        detectedCoordinates = Coordinates(
+            latitude: cached.latitude,
+            longitude: cached.longitude,
+            elevation: cached.elevation
+        )
+        detectedCity = cached.city
+        detectedCountryCode = cached.countryCode
+        detectedTimeZoneID = cached.timeZoneID
+    }
+
+    /// Record the current detection so the next launch starts from it. City,
+    /// country and timezone are passed in by `detectLocation()` from the
+    /// *preserved* state, so a geocode that failed on its own (no network yet)
+    /// keeps the previously cached values instead of wiping them with nil.
+    private func persistDetection(city: String?, countryCode: String?, timeZoneID: String?) {
+        guard let detected = detectedCoordinates else { return }
+        let cached = CachedDetection(
+            latitude: detected.latitude,
+            longitude: detected.longitude,
+            elevation: detected.elevation,
+            city: city,
+            countryCode: countryCode,
+            timeZoneID: timeZoneID,
+            detectedAt: Date()
+        )
+        guard let data = try? JSONEncoder().encode(cached) else { return }
+        defaults.set(data, forKey: detectionCacheKey)
+    }
+
+    private static func loadDetection(from defaults: UserDefaults, key: String) -> CachedDetection? {
+        guard let data = defaults.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(CachedDetection.self, from: data)
+    }
+
     /// On launch, detect the location when the user is in automatic mode. On a
     /// genuine first launch we *do* prompt for permission (the new default is
     /// automatic, so the app should work out of the box). On every later launch we
@@ -173,8 +241,12 @@ final class SettingsStore {
                 elevation: loc.altitude
             )
             let place = await location.place(for: loc)
-            detectedCountryCode = place.countryCode
-            detectedTimeZoneID = place.timeZone?.identifier
+            // A cold-start geocode can fail even when the fix succeeded (no
+            // network yet): keep the previous city/country/timezone rather than
+            // wiping good — possibly cached — values with nil.
+            detectedCity = place.city ?? detectedCity
+            detectedCountryCode = place.countryCode ?? detectedCountryCode
+            detectedTimeZoneID = place.timeZone?.identifier ?? detectedTimeZoneID
             if settings.autoDetectMethod, let code = place.countryCode {
                 settings.methodID = MethodRegistry.methodID(forCountryCode: code)
             }
@@ -184,6 +256,9 @@ final class SettingsStore {
             if let tz = place.timeZone, tz.identifier != resolvedTimeZone.identifier {
                 settings.timeZoneMode = .explicit(identifier: tz.identifier)
             }
+            // Feed the launch cache so the *next* start (even a cold one) opens
+            // on this location instead of the Istanbul default.
+            persistDetection(city: detectedCity, countryCode: detectedCountryCode, timeZoneID: detectedTimeZoneID)
         } catch {
             locationError = error.localizedDescription
         }

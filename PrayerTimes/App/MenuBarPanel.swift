@@ -32,10 +32,16 @@ struct MenuBarPanel: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(PrayerFormatting.longDate(clock.now, in: clock.timeZone).uppercased())
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .tracking(0.5)
+            HStack(alignment: .firstTextBaseline) {
+                Text(PrayerFormatting.longDate(clock.now, in: clock.timeZone).uppercased())
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .tracking(0.5)
+                Spacer()
+                if clock.showsLocationRefresh {
+                    refreshControl
+                }
+            }
 
             if clock.showsHijriDate {
                 Text(PrayerFormatting.hijriDate(clock.now, in: clock.timeZone, adjustment: clock.hijriDayAdjustment))
@@ -65,6 +71,37 @@ struct MenuBarPanel: View {
                 }
             }
         }
+    }
+
+    // MARK: Location refresh (top-right of the date row)
+
+    /// Re-detects the location on click — the same one-shot path as
+    /// Settings → "Detect my location" (including the cold-start retry
+    /// policy), with a spinner while the request is in flight. Shown in
+    /// Automatic mode only, where the detected location drives the times.
+    private var refreshControl: some View {
+        Button { clock.refreshLocation() } label: {
+            ZStack {
+                // Both occupants share one fixed-size box and cross-fade by
+                // opacity: swapping views outright would change the control's
+                // size and make the whole date row jump on click.
+                Image(systemName: "arrow.clockwise")
+                    .font(.caption2.weight(.semibold))
+                    .imageScale(.small)
+                    .opacity(clock.isDetectingLocation ? 0 : 1)
+                ProgressView().controlSize(.mini)
+                    .opacity(clock.isDetectingLocation ? 1 : 0)
+            }
+            .frame(width: 20, height: 16)
+            .contentShape(Rectangle())
+            .animation(.easeInOut(duration: 0.15), value: clock.isDetectingLocation)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.brand)
+        .menuRowHighlight()
+        .disabled(clock.isDetectingLocation)
+        .help("Refresh location")
+        .accessibilityLabel("Refresh location")
     }
 
     // MARK: Times list
@@ -179,6 +216,20 @@ struct MenuBarPanel: View {
                        clock.timeZone.identifier),
                 systemImage: "location"
             )
+            // The reverse-geocoded city of the detected location, right under
+            // the coordinates it belongs to, labelled like the panel's other
+            // location facts. Automatic mode only.
+            if clock.showsLocationRefresh, let city = clock.detectedCity {
+                Text("Location: \(city)")
+            }
+            // A failed refresh explains itself in human terms (the friendly
+            // localized message), never the raw CLErrorDomain string.
+            if let error = clock.locationError {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .font(.caption)
         .foregroundStyle(.secondary)

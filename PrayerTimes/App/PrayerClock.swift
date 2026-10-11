@@ -76,6 +76,19 @@ final class PrayerClock {
     var timeZone: TimeZone { settings.resolvedTimeZone }
     var methodName: String { settings.resolvedMethodName }
 
+    // Location-detection state surfaced to the panel (Settings → "Detect my
+    // location" is the same path; the panel adds a quick re-trigger).
+    /// The city of the last successful detection, e.g. "Berlin". nil in Manual
+    /// mode or before the first reverse geocode.
+    var detectedCity: String? { settings.detectedCity }
+    /// True while a detect is in flight (drives the panel's spinner).
+    var isDetectingLocation: Bool { settings.isDetectingLocation }
+    /// The friendly localized message from the last failed detect, if any.
+    var locationError: String? { settings.locationError }
+    /// The panel's refresh control and city line describe the *detected*
+    /// location, so they only apply in Automatic mode.
+    var showsLocationRefresh: Bool { settings.settings.locationMode == .automatic }
+
     /// The upcoming prayer: the next one today, or tomorrow's Fajr after Isha.
     var nextEvent: (prayer: Prayer, time: Date)? {
         today.next(after: now) ?? tomorrow.next(after: now)
@@ -114,6 +127,11 @@ final class PrayerClock {
 
     /// Stop in-process Adhan playback.
     func stopAdhan() { audio.stop() }
+
+    /// Re-run the one-shot location detection (panel refresh button). The
+    /// store coalesces overlapping requests, so a tap while one is in flight
+    /// is a no-op.
+    func refreshLocation() { Task { await settings.detectLocation() } }
 
     /// Iqamah instant for a prayer, if an offset is configured (obligatory only).
     /// In Manual mode the displayed time *is* the jamaat, so no extra iqamah line.

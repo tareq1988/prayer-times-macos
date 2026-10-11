@@ -111,6 +111,28 @@
         }
       }
     },
+    "A location request is already in progress.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "طلب موقع قيد التنفيذ بالفعل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "একটি অবস্থান অনুরোধ ইতিমধ্যে চলছে।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir konum isteği zaten işleme alındı."
+          }
+        }
+      }
+    },
     "AH": {
       "comment": "Hijri era suffix shown after the year, e.g. '22 Sha'ban 1447 AH'",
       "localizations": {
@@ -1784,6 +1806,72 @@
         }
       }
     },
+    "Location access was denied. Enable it in System Settings → Privacy & Security → Location Services.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم رفض الوصول إلى الموقع. مكّنه من إعدادات النظام → الخصوصية والأمان → خدمات الموقع."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থানে প্রবেশাধিকার নিষেধ করা হয়েছে। সিস্টেম সেটিংস → গোপনীয়তা ও নিরাপত্তা → অবস্থান পরিষেবা থেকে এটি চালু করুন।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum erişimi reddedildi. Bunu Sistem Ayarları → Gizlilik ve Güvenlik → Konum Hizmetleri bölümünden etkinleştirin."
+          }
+        }
+      }
+    },
+    "Location isn't available yet — it may still be starting up. Try again in a moment.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الموقع غير متاح بعد — قد تزال خدمات الموقع قيد التشغيل. حاول مرة أخرى بعد قليل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান এখনও উপলব্ধ নয় — অবস্থান পরিষেবা এখনও চালু হচ্ছে হতে পারে। কিছুক্ষণ পরে আবার চেষ্টা করুন।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum henüz kullanılamıyor — konum hizmetleri hâlâ başlıyor olabilir. Biraz sonra tekrar deneyin."
+          }
+        }
+      }
+    },
+    "Location: %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الموقع: %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum: %@"
+          }
+        }
+      }
+    },
     "Longitude": {
       "localizations": {
         "ar": {
@@ -2088,6 +2176,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sonraki namaz"
+          }
+        }
+      }
+    },
+    "No location was returned.": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يتم إرجاع أي موقع."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো অবস্থান ফেরত দেওয়া হয়নি।"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum döndürülmedi."
           }
         }
       }
@@ -2440,6 +2550,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Çık"
+          }
+        }
+      }
+    },
+    "Refresh location": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تحديث الموقع"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান রিফ্রেশ করুন"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konumu yenile"
           }
         }
       }
